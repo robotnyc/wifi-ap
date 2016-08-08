@@ -560,13 +560,13 @@ int main (int argc, char **argv)
       gid_t dummy;
       
       /* remove all supplimentary groups */
-      if (gp && 
-	  (setgroups(0, &dummy) == -1 ||
-	   setgid(gp->gr_gid) == -1))
-	{
-	  send_event(err_pipe[1], EVENT_GROUP_ERR, errno, daemon->groupname);
-	  _exit(0);
-	}
+//      if (gp && 
+//	  (setgroups(0, &dummy) == -1 ||
+//	   setgid(gp->gr_gid) == -1))
+//	{
+//	  send_event(err_pipe[1], EVENT_GROUP_ERR, errno, daemon->groupname);
+//	  _exit(0);
+//	} 
   
       if (ent_pw && ent_pw->pw_uid != 0)
 	{     
