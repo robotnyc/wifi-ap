@@ -43,7 +43,7 @@ set_item() {
 			WIFI_SECURITY=$2
 			;;
 		wifi-security-passphrase)
-			WIFI_SECURITY_PASSPHRASE=$3
+			WIFI_SECURITY_PASSPHRASE=$2
 			;;
 		wifi-channel)
 			WIFI_CHANNEL=$2
