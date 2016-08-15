@@ -37,7 +37,7 @@ while [ $? != 0 ] ; do
 done
 
 # Generate our configuration file
-cat <<EOF > /tmp/hostapd.conf
+cat <<EOF > $SNAP_DATA/hostapd.conf
 interface=$iface
 driver=$WIFI_HOSTAPD_DRIVER
 channel=$WIFI_CHANNEL
@@ -53,13 +53,13 @@ EOF
 
 case "$WIFI_SECURITY" in
 	open)
-		cat <<-EOF >> /tmp/hostapd.conf
+		cat <<-EOF >> $SNAP_DATA/hostapd.conf
 		auth_algs=1
 		EOF
 		;;
 	wpa2)
-		cat <<-EOF >> /tmp/hostapd.conf
 		auth_algs=2
+		cat <<-EOF >> $SNAP_DATA/hostapd.conf
 		wpa=2
 		wpa_key_mgmt=WPA-PSK
 		wpa_passphrase=$WIFI_SECURITY_PASSPHRASE
@@ -74,8 +74,8 @@ esac
 
 EXTRA_ARGS=
 if [ "$DEBUG" == "1" ] ; then
-	cat /tmp/hostapd.conf
+	cat $SNAP_DATA/hostapd.conf
 	EXTRA_ARGS="$EXTRA_ARGS -ddd -t"
 fi
 
-exec $SNAP/usr/sbin/hostapd $EXTRA_ARGS /tmp/hostapd.conf
+exec $SNAP/usr/sbin/hostapd $EXTRA_ARGS $SNAP_DATA/hostapd.conf

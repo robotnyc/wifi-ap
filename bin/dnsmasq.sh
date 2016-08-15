@@ -45,7 +45,7 @@ generate_dnsmasq_config() {
 	dhcp-range=$DHCP_RANGE_START,$DHCP_RANGE_STOP,$DHCP_LEASE_TIME
 	dhcp-option=6, $WIFI_ADDRESS
 	EOF
-	) > /tmp/dnsmasq.conf
+	) > $SNAP_DATA/dnsmasq.conf
 }
 
 start_dnsmasq() {
@@ -77,7 +77,7 @@ start_dnsmasq() {
 
 	sysctl -w net.ipv4.ip_forward=1
 
-	exec $SNAP/usr/local/sbin/dnsmasq -k -C /tmp/dnsmasq.conf -l $SNAP_DATA/dnsmasq.leases -x $SNAP_DATA/dnsmasq.pid
+	exec $SNAP/usr/local/sbin/dnsmasq -k -C $SNAP_DATA/dnsmasq.conf -l $SNAP_DATA/dnsmasq.leases -x $SNAP_DATA/dnsmasq.pid
 }
 
 stop_dnsmasq() {
