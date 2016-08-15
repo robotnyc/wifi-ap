@@ -80,6 +80,8 @@ set_item() {
 }
 
 dump_config() {
+	echo "Current configuration:"
+	echo "==========================================================="
 	echo "disabled: $DISABLED"
 	echo "debug: $DEBUG"
 	echo "wifi-interface: $WIFI_INTERFACE"
