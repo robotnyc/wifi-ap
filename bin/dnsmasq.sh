@@ -59,7 +59,7 @@ start_dnsmasq() {
 	# Create our AP interface
 	if [ "$WIFI_INTERFACE_MODE" == "uap" ] ; then
 		iface="uap0"
-		$SNAP/sbin/iw dev $WIFI_INTERFACE interface add $iface type __ap
+		$SNAP/bin/iw dev $WIFI_INTERFACE interface add $iface type __ap
 		sleep 2
 	fi
 
@@ -77,14 +77,14 @@ start_dnsmasq() {
 
 	sysctl -w net.ipv4.ip_forward=1
 
-	exec $SNAP/usr/local/sbin/dnsmasq -k -C $SNAP_DATA/dnsmasq.conf -l $SNAP_DATA/dnsmasq.leases -x $SNAP_DATA/dnsmasq.pid
+	exec $SNAP/bin/dnsmasq -k -C $SNAP_DATA/dnsmasq.conf -l $SNAP_DATA/dnsmasq.leases -x $SNAP_DATA/dnsmasq.pid
 }
 
 stop_dnsmasq() {
 	iface=$WIFI_INTERFACE
 
 	if [ "$WIFI_INTERFACE_MODE" == "uap" ] ; then
-		$SNAP/sbin/iw dev uap0 del
+		$SNAP/bin/iw dev uap0 del
 	fi
 
 	# flush forwarding rules out

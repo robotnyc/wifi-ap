@@ -78,4 +78,4 @@ if [ "$DEBUG" == "1" ] ; then
 	EXTRA_ARGS="$EXTRA_ARGS -ddd -t"
 fi
 
-exec $SNAP/usr/sbin/hostapd $EXTRA_ARGS $SNAP_DATA/hostapd.conf
+exec $SNAP/bin/hostapd $EXTRA_ARGS $SNAP_DATA/hostapd.conf
