@@ -29,7 +29,7 @@ WIFI_SSID="Ubuntu"
 # Can be 'open' or 'wpa2'
 WIFI_SECURITY="open"
 # WIFI_SECURITY="wpa2"
-# WIFI_SECURITY_PASSPHRASE="Ubuntu"
+# WIFI_SECURITY_PASSPHRASE="Ubuntu16.04"
 
 WIFI_CHANNEL=6
 # Operation mode (a = IEEE 802.11a (5 GHz), b = IEEE 802.11b (2.4 GHz),
