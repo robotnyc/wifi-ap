@@ -10,19 +10,12 @@ description: |
   https://code.launchpad.net/~snappy-hwe-team/snappy-hwe-snaps/+git/wifi-ap
 
 apps:
-  dnsmasq:
-    command: bin/dnsmasq.sh start
+  backend:
+    command: bin/ap.sh
     daemon: simple
-    stop-command: bin/dnsmasq.sh stop
     plugs:
       - network-control
       - firewall-control
-      - network-bind
-  hostapd:
-    command: bin/hostapd.sh
-    daemon: simple
-    plugs:
-      - network-control
       - network-bind
   config:
     command: bin/config.sh
@@ -35,8 +28,7 @@ parts:
       all:
         - bin/config.sh
         - bin/config-internal.sh
-        - bin/hostapd.sh
-        - bin/dnsmasq.sh
+        - bin/ap.sh
         - conf/default-config
     snap:
       - $all
