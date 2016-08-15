@@ -14,11 +14,16 @@ apps:
     command: bin/dnsmasq.sh start
     daemon: simple
     stop-command: bin/dnsmasq.sh stop
-    plugs: [network-control, firewall-control]
+    plugs:
+      - network-control
+      - firewall-control
+      - network-bind
   hostapd:
     command: bin/hostapd.sh
     daemon: simple
-    plugs: [network-control]
+    plugs:
+      - network-control
+      - network-bind
   config:
     command: bin/config.sh
 
