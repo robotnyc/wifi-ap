@@ -37,13 +37,9 @@ while [ $? != 0 ] ; do
 done
 
 driver=$WIFI_HOSTAPD_DRIVER
-case "$driver" in
-	rtl8188)
-		driver=rtl871xdrv
-		;;
-	*)
-		;;
-esac
+if [ "$driver" == "rtl8188" ] ; then
+	driver=rtl871xdrv
+fi
 
 # Generate our configuration file
 cat <<EOF > $SNAP_DATA/hostapd.conf
