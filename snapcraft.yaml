@@ -1,0 +1,52 @@
+name: wifi-ap
+version: 1
+confinement: strict
+summary: WiFi Access Point based on hostapd
+description: |
+  This snap is implementing a WiFi access point based on hostapd and allows
+  easily to share a internet connection or just create a network others can
+  easily connect to.
+  Please find the source of this snap at:
+  https://code.launchpad.net/~snappy-hwe-team/snappy-hwe-snaps/+git/wifi-ap
+
+apps:
+  dnsmasq:
+    command: bin/dnsmasq.sh start
+    daemon: simple
+    stop-command: bin/dnsmasq.sh stop
+    plugs: [network-control, firewall-control]
+  hostapd:
+    command: bin/hostapd.sh
+    daemon: simple
+    plugs: [network-control]
+  config:
+    command: bin/config.sh
+
+parts:
+  scripts:
+    plugin: dump
+    source: .
+    filesets:
+      all:
+        - bin/config.sh
+        - bin/config-internal.sh
+        - bin/hostapd.sh
+        - bin/dnsmasq.sh
+    snap:
+      - $all
+  network-utils:
+    plugin: nil
+    stage-packages:
+      - iw
+      - wireless-tools
+  dnsmasq:
+    plugin: make
+    source: https://git.launchpad.net/~snappy-hwe-team/snappy-hwe-snaps/+git/wifi-ap
+    source-type: git
+    source-branch: dnsmasq/2.75
+    build-packages:
+      - build-essential
+  hostapd:
+    plugin: nil
+    stage-packages:
+      - hostapd
