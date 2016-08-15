@@ -65,15 +65,13 @@ start_dnsmasq() {
 	ifconfig $iface $WIFI_ADDRESS netmask 255.255.255.0
 	sleep 2
 
-	# Enable NAT to forward our network connection
-	iptables --flush
-	iptables --table nat --flush
-	iptables --delete-chain
-	iptables --table nat --delete-chain
-	iptables --table nat --append POSTROUTING --out-interface $ETHERNET_INTERFACE -j MASQUERADE
-	iptables --append FORWARD --in-interface $iface -j ACCEPT
+	if [ "$SHARE_NETWORK_INTERFACE" != "none" ] ; then
+		# Enable NAT to forward our network connection
+		iptables --table nat --append POSTROUTING --out-interface $ETHERNET_INTERFACE -j MASQUERADE
+		iptables --append FORWARD --in-interface $iface -j ACCEPT
 
-	sysctl -w net.ipv4.ip_forward=1
+		sysctl -w net.ipv4.ip_forward=1
+	fi
 
 	$SNAP/bin/dnsmasq -k -C $SNAP_DATA/dnsmasq.conf -l $SNAP_DATA/dnsmasq.leases -x $SNAP_DATA/dnsmasq.pid &
 }
@@ -88,9 +86,11 @@ stop_dnsmasq() {
 		iface=$DEFAULT_ACCESS_POINT_INTERFACE
 	fi
 
-	# flush forwarding rules out
-	iptables --table nat --delete POSTROUTING --out-interface $ETHERNET_INTERFACE -j MASQUERADE
-	iptables --delete FORWARD --in-interface $iface -j ACCEPT
+	if [ "$SHARE_NETWORK_INTERFACE" != "none" ] ; then
+		# flush forwarding rules out
+		iptables --table nat --delete POSTROUTING --out-interface $ETHERNET_INTERFACE -j MASQUERADE
+		iptables --delete FORWARD --in-interface $iface -j ACCEPT
+	fi
 
 	if [ "$WIFI_INTERFACE_MODE" == "virtual" ] ; then
 		$SNAP/bin/iw dev $iface del

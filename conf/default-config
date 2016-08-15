@@ -15,7 +15,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 DISABLED=1
-DEBUG=1
+
+# Set to '1' for verbose debugging
+DEBUG=0
 
 # Default configuration
 WIFI_INTERFACE=wlan0
@@ -45,7 +47,9 @@ WIFI_CHANNEL=6
 # g = IEEE 802.11g (2.4 GHz), ad = IEEE 802.11ad (60 GHz);
 WIFI_OPERATION_MODE="g"
 
-ETHERNET_INTERFACE=eth0
+# Network interface which connection will be shared with connected
+# clients. Set to 'none' for not shared network connection.
+SHARE_NETWORK_INTERFACE=eth0
 
 DHCP_RANGE_START=192.168.7.5
 DHCP_RANGE_STOP=192.168.7.100
