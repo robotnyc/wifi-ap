@@ -58,8 +58,8 @@ case "$WIFI_SECURITY" in
 		EOF
 		;;
 	wpa2)
-		auth_algs=2
 		cat <<-EOF >> $SNAP_DATA/hostapd.conf
+		auth_algs=3
 		wpa=2
 		wpa_key_mgmt=WPA-PSK
 		wpa_passphrase=$WIFI_SECURITY_PASSPHRASE
