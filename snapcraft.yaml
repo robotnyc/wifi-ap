@@ -32,6 +32,7 @@ parts:
         - bin/config-internal.sh
         - bin/hostapd.sh
         - bin/dnsmasq.sh
+        - conf/default-config
     snap:
       - $all
   network-utils:
