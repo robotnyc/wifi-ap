@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-. $SNAP/default-config
+. $SNAP/conf/default-config
 
 # We allow the user to place two configuration files. One which
 # he can provide on its own in $SNAP_USER_DATA/config and one
