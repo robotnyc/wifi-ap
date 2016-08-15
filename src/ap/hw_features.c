@@ -494,7 +494,10 @@ static int ieee80211n_check_40mhz(struct hostapd_iface *iface)
 		iface->num_ht40_scan_tries = 1;
 		eloop_cancel_timeout(ap_ht40_scan_retry, iface, NULL);
 		eloop_register_timeout(1, 0, ap_ht40_scan_retry, iface, NULL);
-		return 1;
+
+		//DRIVER_RTW Modify
+		//return -1;
+		return 0;//ignore this error
 	}
 
 	if (ret < 0) {
