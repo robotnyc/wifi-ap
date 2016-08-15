@@ -64,7 +64,8 @@ start_dnsmasq() {
 	fi
 
 	# Initial wifi interface configuration
-	ifconfig $iface up $WIFI_ADDRESS netmask 255.255.255.0
+	ifconfig $iface up
+	ifconfig $iface $WIFI_ADDRESS netmask 255.255.255.0
 	sleep 2
 
 	# Enable NAT
