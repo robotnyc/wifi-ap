@@ -24,7 +24,7 @@ if [ "$DISABLED" == "1" ] ; then
 fi
 
 iface=$WIFI_INTERFACE
-if [ "$WIFI_INTERFACE_MODE" == "uap" ] ; then
+if [ "$WIFI_INTERFACE_MODE" == "virtual" ] ; then
 	iface="uap0"
 fi
 
@@ -36,10 +36,19 @@ while [ $? != 0 ] ; do
 	grep $iface /proc/net/dev &> /dev/null
 done
 
+driver=$WIFI_HOSTAPD_DRIVER
+case "$driver" in
+	rtl8188)
+		driver=rtl871xdrv
+		;;
+	*)
+		;;
+esac
+
 # Generate our configuration file
 cat <<EOF > $SNAP_DATA/hostapd.conf
 interface=$iface
-driver=$WIFI_HOSTAPD_DRIVER
+driver=$driver
 channel=$WIFI_CHANNEL
 macaddr_acl=0
 ignore_broadcast_ssid=0
@@ -78,4 +87,14 @@ if [ "$DEBUG" == "1" ] ; then
 	EXTRA_ARGS="$EXTRA_ARGS -ddd -t"
 fi
 
-exec $SNAP/bin/hostapd $EXTRA_ARGS $SNAP_DATA/hostapd.conf
+hostapd=$SNAP/bin/hostapd
+case "$WIFI_HOSTAPD_DRIVER" in
+	rtl8188)
+		hostapd=$SNAP/rtl8188/hostapd
+		;;
+	*)
+		# Fallthrough and use the default hostapd
+		;;
+esac
+
+exec $hostapd $EXTRA_ARGS $SNAP_DATA/hostapd.conf

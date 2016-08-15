@@ -24,7 +24,7 @@ if [ "$DISABLED" == "1" ] ; then
 fi
 
 if [ -z "$@" ] ; then
-	echo "Usage: $0 start|stop|show-config"
+	echo "Usage: $0 start|stop"
 	exit 1
 fi
 
@@ -57,7 +57,7 @@ start_dnsmasq() {
 	fi
 
 	# Create our AP interface
-	if [ "$WIFI_INTERFACE_MODE" == "uap" ] ; then
+	if [ "$WIFI_INTERFACE_MODE" == "virtual" ] ; then
 		iface="uap0"
 		$SNAP/bin/iw dev $WIFI_INTERFACE interface add $iface type __ap
 		sleep 2
@@ -82,14 +82,17 @@ start_dnsmasq() {
 
 stop_dnsmasq() {
 	iface=$WIFI_INTERFACE
-
-	if [ "$WIFI_INTERFACE_MODE" == "uap" ] ; then
-		$SNAP/bin/iw dev uap0 del
+	if [ "$WIFI_INTERFACE_MODE" == "virtual" ] ; then
+		iface=uap0
 	fi
 
 	# flush forwarding rules out
-	iptables --table nat --delete POSTROUTING --out-interface $NETWORK_ETH -j MASQUERADE
+	iptables --table nat --delete POSTROUTING --out-interface $ETHERNET_INTERFACE -j MASQUERADE
 	iptables --delete FORWARD --in-interface $iface -j ACCEPT
+
+	if [ "$WIFI_INTERFACE_MODE" == "virtual" ] ; then
+		$SNAP/bin/iw dev $iface del
+	fi
 
 	# disable ipv4 forward
 	sysctl -w net.ipv4.ip_forward=0

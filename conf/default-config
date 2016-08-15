@@ -20,8 +20,17 @@ DEBUG=1
 # Default configuration
 WIFI_INTERFACE=wlan0
 WIFI_ADDRESS=192.168.7.1
-WIFI_INTERFACE_MODE=uap
 
+# Possible options are: uap, direct
+#   virtual:
+#     Creates a virtual network interface for the AP with
+#     the interface configured in $WIFI_INTERFACE as parent.
+#   direct:
+#     Will use the interface configured with $WIFI_INTERFACE
+#     directly.
+WIFI_INTERFACE_MODE=virtual
+
+# Possible options are: nl80211, rtl8188
 WIFI_HOSTAPD_DRIVER="nl80211"
 
 WIFI_SSID="Ubuntu"

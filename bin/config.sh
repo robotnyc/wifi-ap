@@ -20,6 +20,13 @@ set_item() {
 	case $1 in
 		disabled)
 			DISABLED=$2
+			if [ "$DISABLED" == "0" ] ; then
+				echo "To really startup the service you have to start the"
+				echo "relevant service components on your own:"
+				echo
+				echo " $ systemctl restart snap.wifi-ap.dnsmasq"
+				echo " $ systemctl restart snap.wifi-ap.hostapd"
+			fi
 			;;
 		debug)
 			DEBUG=$2
@@ -35,6 +42,10 @@ set_item() {
 			;;
 		wifi-hostapd-driver)
 			WIFI_HOSTAPD_DRIVER=$2
+			if [ "$WIFI_HOSTAPD_DRIVER" == "rtl8188" ] ; then
+				# Select correct mode for the rtl8188 driver
+				WIFI_INTERFACE_MODE=direct
+			fi
 			;;
 		wifi-ssid)
 			WIFI_SSID=$2
