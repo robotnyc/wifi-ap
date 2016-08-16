@@ -68,6 +68,11 @@ parts:
     source-branch: hostapd/2.5
     build-packages:
       - build-essential
+      - pkg-config
+      - libnl-3-dev
+      - libnl-genl-3-dev
+      - libnl-route-3-dev
+      - libssl-dev
     make-parameters:
       - BINDIR=/bin
     filesets:
@@ -83,6 +88,11 @@ parts:
     source-branch: hostapd/2.5-rtl8188
     build-packages:
       - build-essential
+      - pkg-config
+      - libnl-3-dev
+      - libnl-genl-3-dev
+      - libnl-route-3-dev
+      - libssl-dev
     make-parameters:
       - BINDIR=/rtl8188
     filesets:
