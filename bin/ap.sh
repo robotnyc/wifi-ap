@@ -132,8 +132,6 @@ wmm_enabled=1
 ieee80211n=1
 ssid=$WIFI_SSID
 hw_mode=$WIFI_OPERATION_MODE
-# Enable 40MHz channels with 20ns guard interval
-ht_capab=[HT40][SHORT-GI-20][DSSS_CCK-40]
 EOF
 
 case "$WIFI_SECURITY" in
