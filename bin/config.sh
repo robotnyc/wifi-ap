@@ -125,6 +125,10 @@ write_configuration() {
 
 case "$1" in
 	set)
+		if [ "$(id -u)" != "0" ] ; then
+			echo "ERROR: '$@' needs to be executed as root!"
+			exit 1
+		fi
 		shift
 		key=$1
 		shift

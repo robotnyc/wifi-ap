@@ -16,6 +16,11 @@
 
 set -x
 
+if [ "$(id -u)" != "0" ] ; then
+	echo "ERROR: $0 needs to be executed as root!"
+	exit 1
+fi
+
 . $SNAP/bin/config-internal.sh
 
 DEFAULT_ACCESS_POINT_INTERFACE="ap0"
