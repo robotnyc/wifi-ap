@@ -22,6 +22,7 @@ if [ "$(id -u)" != "0" ] ; then
 fi
 
 . $SNAP/bin/config-internal.sh
+. $SNAP/bin/helper.sh
 
 DEFAULT_ACCESS_POINT_INTERFACE="ap0"
 
@@ -30,68 +31,7 @@ if [ "$DISABLED" == "1" ] ; then
 	exit 0
 fi
 
-generate_dnsmasq_config() {
-	(
-	iface=$WIFI_INTERFACE
-	if [ "$WIFI_INTERFACE_MODE" == "virtual" ] ; then
-		iface=$DEFAULT_ACCESS_POINT_INTERFACE
-	fi
-
-	cat<<-EOF
-	port=53
-	all-servers
-	interface=$iface
-	except-interface=lo
-	listen-address=$WIFI_ADDRESS
-	bind-interfaces
-	dhcp-range=$DHCP_RANGE_START,$DHCP_RANGE_STOP,$DHCP_LEASE_TIME
-	dhcp-option=6, $WIFI_ADDRESS
-	EOF
-	) > $SNAP_DATA/dnsmasq.conf
-}
-
-start_dnsmasq() {
-	iface=$WIFI_INTERFACE
-
-	# If WiFi interface is managed by ifupdown leave it as is
-	if [ -e /etc/network/interfaces.d/$iface ]; then
-		exit 0
-	fi
-
-	# Create our AP interface if required
-	if [ "$WIFI_INTERFACE_MODE" == "virtual" ] ; then
-		iface=$DEFAULT_ACCESS_POINT_INTERFACE
-		$SNAP/bin/iw dev $WIFI_INTERFACE interface add $iface type __ap
-		sleep 2
-	fi
-
-	# Initial wifi interface configuration
-	ifconfig $iface up
-	if [ "$?" != "0" ] ; then
-		echo "ERROR: Failed to enable WiFi network interface '$iface'"
-
-		# Remove virtual interface again if we created one
-		if [ "$WIFI_INTERFACE_MODE" == "virtual" ] ; then
-			$SNAP/bin/iw dev $iface del
-		fi
-		exit 1
-	fi
-
-	ifconfig $iface $WIFI_ADDRESS netmask 255.255.255.0
-	sleep 2
-
-	if [ "$SHARE_NETWORK_INTERFACE" != "none" ] ; then
-		# Enable NAT to forward our network connection
-		iptables --table nat --append POSTROUTING --out-interface $ETHERNET_INTERFACE -j MASQUERADE
-		iptables --append FORWARD --in-interface $iface -j ACCEPT
-
-		sysctl -w net.ipv4.ip_forward=1
-	fi
-
-	$SNAP/bin/dnsmasq -k -C $SNAP_DATA/dnsmasq.conf -l $SNAP_DATA/dnsmasq.leases -x $SNAP_DATA/dnsmasq.pid &
-}
-
-stop_dnsmasq() {
+shutdown() {
 	DNSMASQ_PID=$(cat $SNAP_DATA/dnsmasq.pid)
 	kill -TERM $DNSMASQ_PID
 	wait $DNSMASQ_PID
@@ -103,40 +43,90 @@ stop_dnsmasq() {
 
 	if [ "$SHARE_NETWORK_INTERFACE" != "none" ] ; then
 		# flush forwarding rules out
-		iptables --table nat --delete POSTROUTING --out-interface $ETHERNET_INTERFACE -j MASQUERADE
+		iptables --table nat --delete POSTROUTING --out-interface $SHARE_NETWORK_INTERFACE -j MASQUERADE
 		iptables --delete FORWARD --in-interface $iface -j ACCEPT
+		sysctl -w net.ipv4.ip_forward=0
 	fi
 
 	if [ "$WIFI_INTERFACE_MODE" == "virtual" ] ; then
 		$SNAP/bin/iw dev $iface del
 	fi
-
-	# disable ipv4 forward
-	sysctl -w net.ipv4.ip_forward=0
 }
-
-generate_dnsmasq_config
-start_dnsmasq
 
 iface=$WIFI_INTERFACE
 if [ "$WIFI_INTERFACE_MODE" == "virtual" ] ; then
 	iface=$DEFAULT_ACCESS_POINT_INTERFACE
+
+	# Make sure if the real wifi interface is connected we use
+	# the same channel for our AP as otherwise the created AP
+	# will not work.
+	channel_in_use="$(iw dev wlan0 info | grep channel | cut -d' ' -f 2)"
+	if [ $channel_in_use != $WIFI_CHANNEL ] ; then
+		echo "ERROR: You configured a different channel than the WiFi device"
+		echo "       is currently using. This will not work as most devices"
+		echo "       require you to operate for AP and STA on the same channel."
+		exit 1
+	fi
 fi
+
+# Create our AP interface if required
+if [ "$WIFI_INTERFACE_MODE" == "virtual" ] ; then
+	iface=$DEFAULT_ACCESS_POINT_INTERFACE
+	$SNAP/bin/iw dev $WIFI_INTERFACE interface add $iface type __ap
+	sleep 2
+fi
+if [ "$WIFI_INTERFACE_MODE" == "direct" ] ; then
+	# If WiFi interface is managed by ifupdown or network-manager leave it as is
+	assert_not_managed_by_ifupdown $iface
+fi
+
+# Prevent network-manager from touching the interface we want to use. If
+# network-manager was configured to use the interface its nothing we want
+# to prevent here as this is how the user configured the system.
+$SNAP/bin/nmcli d set $iface managed no
+
+# Initial wifi interface configuration
+ifconfig $iface up
+if [ "$?" != "0" ] ; then
+	echo "ERROR: Failed to enable WiFi network interface '$iface'"
+
+	# Remove virtual interface again if we created one
+	if [ "$WIFI_INTERFACE_MODE" == "virtual" ] ; then
+		$SNAP/bin/iw dev $iface del
+	fi
+
+	# Hand interface back to network-manager. This will also trigger the
+	# auto connection process inside network-manager to get back connected
+	# with the previous network.
+	$SNAP/bin/nmcli d set $iface managed yes
+
+	exit 1
+fi
+
+# Configure interface and give it a moment to settle
+ifconfig $iface $WIFI_ADDRESS netmask $WIFI_NETMASK
+sleep 2
+
+if [ "$SHARE_NETWORK_INTERFACE" != "none" ] ; then
+	# Enable NAT to forward our network connection
+	iptables --table nat --append POSTROUTING --out-interface $SHARE_NETWORK_INTERFACE -j MASQUERADE
+	iptables --append FORWARD --in-interface $iface -j ACCEPT
+	sysctl -w net.ipv4.ip_forward=1
+fi
+
+generate_dnsmasq_config $SNAP_DATA/dnsmasq.conf
+$SNAP/bin/dnsmasq -k -C $SNAP_DATA/dnsmasq.conf -l $SNAP_DATA/dnsmasq.leases -x $SNAP_DATA/dnsmasq.pid &
 
 # Wait a bit until our WiFi network interface is correctly
 # setup by dnsmasq
-grep $iface /proc/net/dev &> /dev/null
-while [ $? != 0 ] ; do
-	sleep 5
-	grep $iface /proc/net/dev &> /dev/null
-done
+wait_until_interface_is_available $iface
 
 driver=$WIFI_HOSTAPD_DRIVER
 if [ "$driver" == "rtl8188" ] ; then
 	driver=rtl871xdrv
 fi
 
-# Generate our configuration file
+# Generate our hostapd configuration file
 cat <<EOF > $SNAP_DATA/hostapd.conf
 interface=$iface
 driver=$driver
@@ -195,9 +185,9 @@ function exit_handler() {
 	# Wait until hostapd is correctly terminated before we continue
 	# doing anything
 	wait $HOSTAPD_PID
-	stop_dnsmasq
+	shutdown
 	exit 0
 }
 
 wait $HOSTAPD_PID
-stop_dnsmasq
+shutdown

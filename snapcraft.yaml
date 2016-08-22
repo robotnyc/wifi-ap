@@ -17,6 +17,7 @@ apps:
       - network-control
       - firewall-control
       - network-bind
+      - network-manager
   config:
     command: bin/config.sh
 
@@ -24,14 +25,12 @@ parts:
   scripts:
     plugin: dump
     source: .
-    filesets:
-      all:
+    snap:
         - bin/config.sh
         - bin/config-internal.sh
         - bin/ap.sh
+        - bin/helper.sh
         - conf/default-config
-    snap:
-      - $all
   network-utils:
     plugin: nil
     stage-packages:
@@ -100,3 +99,9 @@ parts:
         - rtl8188/hostapd
     snap:
       - $binaries
+  nmlci:
+    plugin: nil
+    stage-packages:
+      - network-manager
+    organize:
+      usr/bin/nmcli: bin/nmcli

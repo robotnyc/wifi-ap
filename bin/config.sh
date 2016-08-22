@@ -30,47 +30,50 @@ set_item() {
 		debug)
 			DEBUG=$2
 			;;
-		wifi-interface)
+		wifi.interface)
 			WIFI_INTERFACE=$2
 			;;
-		wifi-address)
+		wifi.address)
 			WIFI_ADDRESS=$2
 			;;
-		wifi-interface-mode)
+		wifi.netmask)
+			WIFI_NETMASK=$2
+			;;
+		wifi.interface-mode)
 			WIFI_INTERFACE_MODE=$2
 			;;
-		wifi-hostapd-driver)
+		wifi.hostapd-driver)
 			WIFI_HOSTAPD_DRIVER=$2
 			if [ "$WIFI_HOSTAPD_DRIVER" == "rtl8188" ] ; then
 				# Select correct mode for the rtl8188 driver
 				WIFI_INTERFACE_MODE=direct
 			fi
 			;;
-		wifi-ssid)
+		wifi.ssid)
 			WIFI_SSID=$2
 			;;
-		wifi-security)
+		wifi.security)
 			WIFI_SECURITY=$2
 			;;
-		wifi-security-passphrase)
+		wifi.security-passphrase)
 			WIFI_SECURITY_PASSPHRASE=$2
 			;;
-		wifi-channel)
+		wifi.channel)
 			WIFI_CHANNEL=$2
 			;;
-		wifi-operation-mode)
+		wifi.operation-mode)
 			WIFI_OPERATION_MODE=$2
 			;;
-		share-network-interface)
+		share.network-interface)
 			SHARE_NETWORK_INTERFACE=$2
 			;;
-		dhcp-range-start)
+		dhcp.range-start)
 			DHCP_RANGE_START=$2
 			;;
-		dhcp-range-stop)
+		dhcp.range-stop)
 			DHCP_RANGE_STOP=$2
 			;;
-		dhcp-lease-time)
+		dhcp.lease-time)
 			DHCP_LEASE_TIME=$2
 			;;
 		*)
@@ -84,19 +87,20 @@ dump_config() {
 	echo "==========================================================="
 	echo "disabled: $DISABLED"
 	echo "debug: $DEBUG"
-	echo "wifi-interface: $WIFI_INTERFACE"
-	echo "wifi-address: $WIFI_ADDRESS"
-	echo "wifi-interface-mode: $WIFI_INTERFACE_MODE"
-	echo "wifi-hostapd-driver: $WIFI_HOSTAPD_DRIVER"
-	echo "wifi-ssid: $WIFI_SSID"
-	echo "wifi-security: $WIFI_SECURITY"
-	echo "wifi-security-passphrase: $WIFI_SECURITY_PASSPHRASE"
-	echo "wifi-channel: $WIFI_CHANNEL"
-	echo "wifi-operation-mode: $WIFI_OPERATION_MODE"
-	echo "share-network-interface: $SHARE_NETWORK_INTERFACE"
-	echo "dhcp-range-start: $DHCP_RANGE_START"
-	echo "dhcp-range-stop: $DHCP_RANGE_STOP"
-	echo "dhcp-lease-time: $DHCP_LEASE_TIME"
+	echo "wifi.interface: $WIFI_INTERFACE"
+	echo "wifi.address: $WIFI_ADDRESS"
+	echo "wifi.netmask: $WIFI_NETMASK"
+	echo "wifi.interface-mode: $WIFI_INTERFACE_MODE"
+	echo "wifi.hostapd-driver: $WIFI_HOSTAPD_DRIVER"
+	echo "wifi.ssid: $WIFI_SSID"
+	echo "wifi.security: $WIFI_SECURITY"
+	echo "wifi.security-passphrase: $WIFI_SECURITY_PASSPHRASE"
+	echo "wifi.channel: $WIFI_CHANNEL"
+	echo "wifi.operation-mode: $WIFI_OPERATION_MODE"
+	echo "share.network-interface: $SHARE_NETWORK_INTERFACE"
+	echo "dhcp.range-start: $DHCP_RANGE_START"
+	echo "dhcp.range-stop: $DHCP_RANGE_STOP"
+	echo "dhcp.lease-time: $DHCP_LEASE_TIME"
 }
 
 write_configuration() {
@@ -109,6 +113,7 @@ write_configuration() {
 	DEBUG=$DEBUG
 	WIFI_INTERFACE=$WIFI_INTERFACE
 	WIFI_ADDRESS=$WIFI_ADDRESS
+	WIFI_NETMASK=$WIFI_NETMASK
 	WIFI_INTERFACE_MODE=$WIFI_INTERFACE_MODE
 	WIFI_HOSTAPD_DRIVER=$WIFI_HOSTAPD_DRIVER
 	WIFI_SSID=$WIFI_SSID
