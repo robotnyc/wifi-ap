@@ -67,6 +67,16 @@ start_dnsmasq() {
 
 	# Initial wifi interface configuration
 	ifconfig $iface up
+	if [ "$?" != "0" ] ; then
+		echo "ERROR: Failed to enable WiFi network interface '$iface'"
+
+		# Remove virtual interface again if we created one
+		if [ "$WIFI_INTERFACE_MODE" == "virtual" ] ; then
+			$SNAP/bin/iw dev $iface del
+		fi
+		exit 1
+	fi
+
 	ifconfig $iface $WIFI_ADDRESS netmask 255.255.255.0
 	sleep 2
 
