@@ -17,12 +17,19 @@
 . $SNAP/bin/config-internal.sh
 
 set_item() {
+	if [ -z "$1" ] || [ -z "$2" ] ; then
+		echo "ERROR: You need to provide a key and a value to set"
+		exit 1
+	fi
 	case $1 in
 		disabled)
 			DISABLED=$2
 			if [ "$DISABLED" == "0" ] ; then
-				echo "To really startup the service you have to start the"
-				echo "relevant service components on your own:"
+				echo "You have successfully enabled the access point but you still"
+				echo "need to either reboot the device or restart the systemd"
+				echo "service to make the service reloading its configuration."
+				echo "You can just run the following command (as root) if you"
+				echo "do not want to reboot your device:"
 				echo
 				echo " $ systemctl restart snap.wifi-ap.backend"
 			fi
@@ -77,7 +84,7 @@ set_item() {
 			DHCP_LEASE_TIME=$2
 			;;
 		*)
-			echo "Unknown config item '$1'"
+			echo "ERROR: Unknown config item '$1'"
 			exit 1
 	esac
 }
@@ -181,6 +188,13 @@ write_configuration() {
 	DHCP_LEASE_TIME=$DHCP_LEASE_TIME
 	EOF
 }
+
+if [ -z "$1" ] ; then
+	echo "Usage: $0 get|set <key> [<value>]"
+	exit
+fi
+
+
 
 case "$1" in
 	set)
