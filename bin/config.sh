@@ -82,9 +82,63 @@ set_item() {
 	esac
 }
 
+get_item() {
+	case $1 in
+		disabled)
+			echo $DISABLED
+			;;
+		debug)
+			echo $DEBUG
+			;;
+		wifi.interface)
+			echo $WIFI_INTERFACE
+			;;
+		wifi.address)
+			echo $WIFI_ADDRESS
+			;;
+		wifi.netmask)
+			echo $WIFI_NETMASK
+			;;
+		wifi.interface-mode)
+			echo $WIFI_INTERFACE_MODE
+			;;
+		wifi.hostapd-driver)
+			echo $WIFI_HOSTAPD_DRIVER
+			;;
+		wifi.ssid)
+			echo $WIFI_SSID
+			;;
+		wifi.security)
+			echo $WIFI_SECURITY
+			;;
+		wifi.security-passphrase)
+			echo $WIFI_SECURITY_PASSPHRASE
+			;;
+		wifi.channel)
+			echo $WIFI_CHANNEL
+			;;
+		wifi.operation-mode)
+			echo $WIFI_OPERATION_MODE
+			;;
+		share.network-interface)
+			echo $SHARE_NETWORK_INTERFACE
+			;;
+		dhcp.range-start)
+			echo $DHCP_RANGE_START
+			;;
+		dhcp.range-stop)
+			echo $DHCP_RANGE_STOP
+			;;
+		dhcp.lease-time)
+			echo $DHCP_LEASE_TIME
+			;;
+		*)
+			echo "Unknown config item '$1'"
+			exit 1
+	esac
+}
+
 dump_config() {
-	echo "Current configuration:"
-	echo "==========================================================="
 	echo "disabled: $DISABLED"
 	echo "debug: $DEBUG"
 	echo "wifi.interface: $WIFI_INTERFACE"
@@ -142,8 +196,13 @@ case "$1" in
 		set_item $key $value
 		write_configuration
 		;;
-	dump)
-		dump_config
+	get)
+		shift
+		if [ "$1" == "" ] ; then
+			dump_config
+		else
+			echo "$1: $(get_item $1)"
+		fi
 		shift
 		;;
 	*)
