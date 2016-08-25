@@ -16,7 +16,7 @@
 
 set -x
 
-if [ "$(id -u)" != "0" ] ; then
+if [ $(id -u) -ne 0 ] ; then
 	echo "ERROR: $0 needs to be executed as root!"
 	exit 1
 fi
@@ -60,7 +60,7 @@ if [ "$WIFI_INTERFACE_MODE" == "virtual" ] ; then
 	# Make sure if the real wifi interface is connected we use
 	# the same channel for our AP as otherwise the created AP
 	# will not work.
-	channel_in_use="$(iw dev $WIFI_INTERFACE info | grep channel | cut -d' ' -f 2)"
+	channel_in_use=$(iw dev $WIFI_INTERFACE info |awk '/channel/{print$2}')
 	if [ $channel_in_use != $WIFI_CHANNEL ] ; then
 		echo "ERROR: You configured a different channel than the WiFi device"
 		echo "       is currently using. This will not work as most devices"
@@ -70,12 +70,12 @@ if [ "$WIFI_INTERFACE_MODE" == "virtual" ] ; then
 fi
 
 # Create our AP interface if required
-if [ "$WIFI_INTERFACE_MODE" == "virtual" ] ; then
+if [ "$WIFI_INTERFACE_MODE" = "virtual" ] ; then
 	iface=$DEFAULT_ACCESS_POINT_INTERFACE
 	$SNAP/bin/iw dev $WIFI_INTERFACE interface add $iface type __ap
 	sleep 2
 fi
-if [ "$WIFI_INTERFACE_MODE" == "direct" ] ; then
+if [ "$WIFI_INTERFACE_MODE" = "direct" ] ; then
 	# If WiFi interface is managed by ifupdown or network-manager leave it as is
 	assert_not_managed_by_ifupdown $iface
 fi
@@ -87,16 +87,16 @@ $SNAP/bin/nmcli d set $iface managed no
 
 # Initial wifi interface configuration
 ifconfig $iface up
-if [ "$?" != "0" ] ; then
+if [ $? -ne 0 ] ; then
 	echo "ERROR: Failed to enable WiFi network interface '$iface'"
 
 	# Remove virtual interface again if we created one
-	if [ "$WIFI_INTERFACE_MODE" == "virtual" ] ; then
+	if [ "$WIFI_INTERFACE_MODE" = "virtual" ] ; then
 		$SNAP/bin/iw dev $iface del
 	fi
 
 	# Hand interface back to network-manager. This will also trigger the
-	# auto connection process inside network-manager to get back connected
+	# auto connection process inside network-manager to get connected
 	# with the previous network.
 	$SNAP/bin/nmcli d set $iface managed yes
 

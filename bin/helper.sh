@@ -32,9 +32,9 @@ assert_not_managed_by_ifupdown() {
 }
 
 generate_dnsmasq_config() {
-	(
+	{
 	iface=$WIFI_INTERFACE
-	if [ "$WIFI_INTERFACE_MODE" == "virtual" ] ; then
+	if [ "$WIFI_INTERFACE_MODE" = "virtual" ] ; then
 		iface=$DEFAULT_ACCESS_POINT_INTERFACE
 	fi
 
@@ -48,5 +48,5 @@ generate_dnsmasq_config() {
 	dhcp-range=$DHCP_RANGE_START,$DHCP_RANGE_STOP,$DHCP_LEASE_TIME
 	dhcp-option=6, $WIFI_ADDRESS
 	EOF
-	) > $1
+	} > $1
 }

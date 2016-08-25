@@ -19,6 +19,8 @@
 set_item() {
 	if [ -z "$1" ] || [ -z "$2" ] ; then
 		echo "ERROR: You need to provide a key and a value to set"
+		echo
+		echo "You can call '$0 get' to list of all possible keys"
 		exit 1
 	fi
 	case $1 in
@@ -191,6 +193,8 @@ write_configuration() {
 
 if [ -z "$1" ] ; then
 	echo "Usage: $0 get|set <key> [<value>]"
+	echo
+	echo "You can call '$0 get' to list of all possible keys"
 	exit
 fi
 
@@ -198,7 +202,7 @@ fi
 
 case "$1" in
 	set)
-		if [ "$(id -u)" != "0" ] ; then
+		if [ $(id -u) -ne 0 ] ; then
 			echo "ERROR: '$@' needs to be executed as root!"
 			exit 1
 		fi
@@ -212,7 +216,7 @@ case "$1" in
 		;;
 	get)
 		shift
-		if [ "$1" == "" ] ; then
+		if [ "$1" = "" ] ; then
 			dump_config
 		else
 			echo "$1: $(get_item $1)"
