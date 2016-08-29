@@ -17,12 +17,21 @@
 . $SNAP/bin/config-internal.sh
 
 set_item() {
+	if [ -z "$1" ] || [ -z "$2" ] ; then
+		echo "ERROR: You need to provide a key and a value to set"
+		echo
+		echo "You can call '$0 get' to list of all possible keys"
+		exit 1
+	fi
 	case $1 in
 		disabled)
 			DISABLED=$2
 			if [ "$DISABLED" == "0" ] ; then
-				echo "To really startup the service you have to start the"
-				echo "relevant service components on your own:"
+				echo "You have successfully enabled the access point but you still"
+				echo "need to either reboot the device or restart the systemd"
+				echo "service to make the service reloading its configuration."
+				echo "You can just run the following command (as root) if you"
+				echo "do not want to reboot your device:"
 				echo
 				echo " $ systemctl restart snap.wifi-ap.backend"
 			fi
@@ -30,48 +39,107 @@ set_item() {
 		debug)
 			DEBUG=$2
 			;;
-		wifi-interface)
+		wifi.interface)
 			WIFI_INTERFACE=$2
 			;;
-		wifi-address)
+		wifi.address)
 			WIFI_ADDRESS=$2
 			;;
-		wifi-interface-mode)
+		wifi.netmask)
+			WIFI_NETMASK=$2
+			;;
+		wifi.interface-mode)
 			WIFI_INTERFACE_MODE=$2
 			;;
-		wifi-hostapd-driver)
+		wifi.hostapd-driver)
 			WIFI_HOSTAPD_DRIVER=$2
 			if [ "$WIFI_HOSTAPD_DRIVER" == "rtl8188" ] ; then
 				# Select correct mode for the rtl8188 driver
 				WIFI_INTERFACE_MODE=direct
 			fi
 			;;
-		wifi-ssid)
+		wifi.ssid)
 			WIFI_SSID=$2
 			;;
-		wifi-security)
+		wifi.security)
 			WIFI_SECURITY=$2
 			;;
-		wifi-security-passphrase)
+		wifi.security-passphrase)
 			WIFI_SECURITY_PASSPHRASE=$2
 			;;
-		wifi-channel)
+		wifi.channel)
 			WIFI_CHANNEL=$2
 			;;
-		wifi-operation-mode)
+		wifi.operation-mode)
 			WIFI_OPERATION_MODE=$2
 			;;
-		share-network-interface)
+		share.network-interface)
 			SHARE_NETWORK_INTERFACE=$2
 			;;
-		dhcp-range-start)
+		dhcp.range-start)
 			DHCP_RANGE_START=$2
 			;;
-		dhcp-range-stop)
+		dhcp.range-stop)
 			DHCP_RANGE_STOP=$2
 			;;
-		dhcp-lease-time)
+		dhcp.lease-time)
 			DHCP_LEASE_TIME=$2
+			;;
+		*)
+			echo "ERROR: Unknown config item '$1'"
+			exit 1
+	esac
+}
+
+get_item() {
+	case $1 in
+		disabled)
+			echo $DISABLED
+			;;
+		debug)
+			echo $DEBUG
+			;;
+		wifi.interface)
+			echo $WIFI_INTERFACE
+			;;
+		wifi.address)
+			echo $WIFI_ADDRESS
+			;;
+		wifi.netmask)
+			echo $WIFI_NETMASK
+			;;
+		wifi.interface-mode)
+			echo $WIFI_INTERFACE_MODE
+			;;
+		wifi.hostapd-driver)
+			echo $WIFI_HOSTAPD_DRIVER
+			;;
+		wifi.ssid)
+			echo $WIFI_SSID
+			;;
+		wifi.security)
+			echo $WIFI_SECURITY
+			;;
+		wifi.security-passphrase)
+			echo $WIFI_SECURITY_PASSPHRASE
+			;;
+		wifi.channel)
+			echo $WIFI_CHANNEL
+			;;
+		wifi.operation-mode)
+			echo $WIFI_OPERATION_MODE
+			;;
+		share.network-interface)
+			echo $SHARE_NETWORK_INTERFACE
+			;;
+		dhcp.range-start)
+			echo $DHCP_RANGE_START
+			;;
+		dhcp.range-stop)
+			echo $DHCP_RANGE_STOP
+			;;
+		dhcp.lease-time)
+			echo $DHCP_LEASE_TIME
 			;;
 		*)
 			echo "Unknown config item '$1'"
@@ -80,23 +148,22 @@ set_item() {
 }
 
 dump_config() {
-	echo "Current configuration:"
-	echo "==========================================================="
 	echo "disabled: $DISABLED"
 	echo "debug: $DEBUG"
-	echo "wifi-interface: $WIFI_INTERFACE"
-	echo "wifi-address: $WIFI_ADDRESS"
-	echo "wifi-interface-mode: $WIFI_INTERFACE_MODE"
-	echo "wifi-hostapd-driver: $WIFI_HOSTAPD_DRIVER"
-	echo "wifi-ssid: $WIFI_SSID"
-	echo "wifi-security: $WIFI_SECURITY"
-	echo "wifi-security-passphrase: $WIFI_SECURITY_PASSPHRASE"
-	echo "wifi-channel: $WIFI_CHANNEL"
-	echo "wifi-operation-mode: $WIFI_OPERATION_MODE"
-	echo "share-network-interface: $SHARE_NETWORK_INTERFACE"
-	echo "dhcp-range-start: $DHCP_RANGE_START"
-	echo "dhcp-range-stop: $DHCP_RANGE_STOP"
-	echo "dhcp-lease-time: $DHCP_LEASE_TIME"
+	echo "wifi.interface: $WIFI_INTERFACE"
+	echo "wifi.address: $WIFI_ADDRESS"
+	echo "wifi.netmask: $WIFI_NETMASK"
+	echo "wifi.interface-mode: $WIFI_INTERFACE_MODE"
+	echo "wifi.hostapd-driver: $WIFI_HOSTAPD_DRIVER"
+	echo "wifi.ssid: $WIFI_SSID"
+	echo "wifi.security: $WIFI_SECURITY"
+	echo "wifi.security-passphrase: $WIFI_SECURITY_PASSPHRASE"
+	echo "wifi.channel: $WIFI_CHANNEL"
+	echo "wifi.operation-mode: $WIFI_OPERATION_MODE"
+	echo "share.network-interface: $SHARE_NETWORK_INTERFACE"
+	echo "dhcp.range-start: $DHCP_RANGE_START"
+	echo "dhcp.range-stop: $DHCP_RANGE_STOP"
+	echo "dhcp.lease-time: $DHCP_LEASE_TIME"
 }
 
 write_configuration() {
@@ -109,6 +176,7 @@ write_configuration() {
 	DEBUG=$DEBUG
 	WIFI_INTERFACE=$WIFI_INTERFACE
 	WIFI_ADDRESS=$WIFI_ADDRESS
+	WIFI_NETMASK=$WIFI_NETMASK
 	WIFI_INTERFACE_MODE=$WIFI_INTERFACE_MODE
 	WIFI_HOSTAPD_DRIVER=$WIFI_HOSTAPD_DRIVER
 	WIFI_SSID=$WIFI_SSID
@@ -123,8 +191,21 @@ write_configuration() {
 	EOF
 }
 
+if [ -z "$1" ] ; then
+	echo "Usage: $0 get|set <key> [<value>]"
+	echo
+	echo "You can call '$0 get' to list of all possible keys"
+	exit
+fi
+
+
+
 case "$1" in
 	set)
+		if [ $(id -u) -ne 0 ] ; then
+			echo "ERROR: '$@' needs to be executed as root!"
+			exit 1
+		fi
 		shift
 		key=$1
 		shift
@@ -133,8 +214,13 @@ case "$1" in
 		set_item $key $value
 		write_configuration
 		;;
-	dump)
-		dump_config
+	get)
+		shift
+		if [ "$1" = "" ] ; then
+			dump_config
+		else
+			echo "$1: $(get_item $1)"
+		fi
 		shift
 		;;
 	*)
