@@ -20,6 +20,9 @@ apps:
       - network-manager
   config:
     command: bin/config.sh
+  management-service:
+    command: bin/service
+    daemon: simple
 
 parts:
   scripts:
@@ -44,6 +47,13 @@ parts:
         - bin/iwconfig
     snap:
       - $binaries
+
+  management-service:
+    plugin: go
+    source: ./service
+    snap:
+      - bin
+
   dnsmasq:
     plugin: make
     source: https://git.launchpad.net/~snappy-hwe-team/snappy-hwe-snaps/+git/wifi-ap
@@ -99,7 +109,7 @@ parts:
         - rtl8188/hostapd
     snap:
       - $binaries
-  nmlci:
+  nmcli:
     plugin: nil
     stage-packages:
       - network-manager
