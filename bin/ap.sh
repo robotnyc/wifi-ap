@@ -31,6 +31,14 @@ if [ "$DISABLED" == "1" ] ; then
 	exit 0
 fi
 
+# Make sure the configured WiFi interface is really available before
+# doing anything.
+ifconfig $WIFI_INTERFACE
+if [ $? -ne 0 ] ; then
+	echo "ERROR: WiFi interface $WIFI_INTERFACE is not available!"
+	exit 1
+fi
+
 shutdown() {
 	DNSMASQ_PID=$(cat $SNAP_DATA/dnsmasq.pid)
 	kill -TERM $DNSMASQ_PID
