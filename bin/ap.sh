@@ -26,15 +26,14 @@ fi
 
 DEFAULT_ACCESS_POINT_INTERFACE="ap0"
 
-if [ "$DISABLED" == "1" ] ; then
+if [ $DISABLED -eq 1 ] ; then
 	echo "Not starting as WiFi AP is disabled"
 	exit 0
 fi
 
 # Make sure the configured WiFi interface is really available before
 # doing anything.
-ifconfig $WIFI_INTERFACE
-if [ $? -ne 0 ] ; then
+if ! ifconfig $WIFI_INTERFACE ; then
 	echo "ERROR: WiFi interface $WIFI_INTERFACE is not available!"
 	exit 1
 fi
