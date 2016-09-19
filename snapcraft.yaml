@@ -24,6 +24,8 @@ apps:
   management-service:
     command: bin/service
     daemon: simple
+    plugs:
+      - network-bind
 
 parts:
   scripts:
