@@ -18,13 +18,14 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"gopkg.in/check.v1"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
+
+	"gopkg.in/check.v1"
 )
 
 // gopkg.in/check.v1 stuff
@@ -82,18 +83,18 @@ func (s *S) TestEscapeShell(c *check.C) {
 
 func (s *S) TestGetConfiguration(c *check.C) {
 	// Check it we get a valid JSON as configuration
-	req, err := http.NewRequest(http.MethodGet, CONFIGURATION_API_URI, nil)
+	req, err := http.NewRequest(http.MethodGet, configurationV1Uri, nil)
 	c.Assert(err, check.IsNil)
 
 	rec := httptest.NewRecorder()
 
 	getConfiguration(rec, req)
 
-	body, err := ioutil.ReadAll(rec.Result().Body)
+	body, err := ioutil.ReadAll(rec.Body)
 	c.Assert(err, check.IsNil)
 
 	// Parse the returned JSON
-	var resp Response
+	var resp ServiceResponse
 	err = json.Unmarshal(body, &resp)
 	c.Assert(err, check.IsNil)
 
@@ -107,7 +108,7 @@ func (s *S) TestChangeConfiguration(c *check.C) {
 	// Test a non writable path:
 	os.Setenv("SNAP_DATA", "/nodir")
 
-	req, err := http.NewRequest(http.MethodPost, CONFIGURATION_API_URI, nil)
+	req, err := http.NewRequest(http.MethodPost, configurationV1Uri, nil)
 	c.Assert(err, check.IsNil)
 
 	rec := httptest.NewRecorder()
@@ -116,11 +117,11 @@ func (s *S) TestChangeConfiguration(c *check.C) {
 
 	c.Assert(rec.Code, check.Equals, http.StatusInternalServerError)
 
-	body, err := ioutil.ReadAll(rec.Result().Body)
+	body, err := ioutil.ReadAll(rec.Body)
 	c.Assert(err, check.IsNil)
 
 	// Parse the returned JSON
-	var resp Response
+	var resp ServiceResponse
 	err = json.Unmarshal(body, &resp)
 	c.Assert(err, check.IsNil)
 
@@ -133,7 +134,7 @@ func (s *S) TestChangeConfiguration(c *check.C) {
 
 	// Test an invalid JSON
 	os.Setenv("SNAP_DATA", "/tmp")
-	req, err = http.NewRequest(http.MethodPost, CONFIGURATION_API_URI, strings.NewReader("not a JSON content"))
+	req, err = http.NewRequest(http.MethodPost, configurationV1Uri, strings.NewReader("not a JSON content"))
 	c.Assert(err, check.IsNil)
 
 	rec = httptest.NewRecorder()
@@ -142,11 +143,11 @@ func (s *S) TestChangeConfiguration(c *check.C) {
 
 	c.Assert(rec.Code, check.Equals, http.StatusInternalServerError)
 
-	body, err = ioutil.ReadAll(rec.Result().Body)
+	body, err = ioutil.ReadAll(rec.Body)
 	c.Assert(err, check.IsNil)
 
 	// Parse the returned JSON
-	resp = Response{}
+	resp = ServiceResponse{}
 	err = json.Unmarshal(body, &resp)
 	c.Assert(err, check.IsNil)
 
@@ -170,7 +171,7 @@ func (s *S) TestChangeConfiguration(c *check.C) {
 	args, err := json.Marshal(values)
 	c.Assert(err, check.IsNil)
 
-	req, err = http.NewRequest(http.MethodPost, CONFIGURATION_API_URI, bytes.NewReader(args))
+	req, err = http.NewRequest(http.MethodPost, configurationV1Uri, bytes.NewReader(args))
 	c.Assert(err, check.IsNil)
 
 	rec = httptest.NewRecorder()
@@ -181,11 +182,11 @@ func (s *S) TestChangeConfiguration(c *check.C) {
 	c.Assert(rec.Code, check.Equals, http.StatusOK)
 
 	// Read the result JSON
-	body, err = ioutil.ReadAll(rec.Result().Body)
+	body, err = ioutil.ReadAll(rec.Body)
 	c.Assert(err, check.IsNil)
 
 	// Parse the returned JSON
-	resp = Response{}
+	resp = ServiceResponse{}
 	err = json.Unmarshal(body, &resp)
 	c.Assert(err, check.IsNil)
 
