@@ -20,7 +20,9 @@ apps:
       - network-bind
       - network-manager
   config:
-    command: bin/config.sh
+    command: bin/client config
+    plugs:
+      - network
   management-service:
     command: bin/service
     daemon: simple
@@ -32,7 +34,6 @@ parts:
     plugin: dump
     source: .
     snap:
-        - bin/config.sh
         - bin/config-internal.sh
         - bin/ap.sh
         - bin/helper.sh
@@ -55,6 +56,12 @@ parts:
         - bin/iwconfig
     snap:
       - $binaries
+
+  config:
+    plugin: go
+    source: ./client
+    snap:
+      - bin
 
   management-service:
     plugin: go
