@@ -59,13 +59,13 @@ parts:
 
   config:
     plugin: go
-    source: ./client
+    source: cmd/client
     snap:
       - bin
 
   management-service:
     plugin: go
-    source: ./service
+    source: cmd/service
     snap:
       - bin
 
