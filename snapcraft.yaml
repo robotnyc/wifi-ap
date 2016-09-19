@@ -8,6 +8,7 @@ description: |
   easily connect to.
   Please find the source of this snap at:
   https://code.launchpad.net/~snappy-hwe-team/snappy-hwe-snaps/+git/wifi-ap
+grade: stable
 
 apps:
   backend:
