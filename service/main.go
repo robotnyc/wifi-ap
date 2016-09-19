@@ -23,6 +23,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -76,14 +77,16 @@ func sendHttpResponse(writer http.ResponseWriter, response Response) {
 }
 
 func getConfigOnPath(path string) string {
-	return path + "/config"
+	return filepath.Join(path, "config")
 }
 
 // Array of paths where the config file can be found.
 // The first one is readonly, the others are writable
 // they are readed in order and the configuration is merged
-var cfgpaths []string = []string{getConfigOnPath(os.Getenv("SNAP")),
-	getConfigOnPath(os.Getenv("SNAP_DATA")), getConfigOnPath(os.Getenv("SNAP_USER_DATA"))}
+var configurationPaths []string = []string{
+	filepath.Join(os.Getenv("SNAP"), "conf", "default-config"),
+	getConfigOnPath(os.Getenv("SNAP_DATA")),
+	getConfigOnPath(os.Getenv("SNAP_USER_DATA"))}
 
 const (
 	PORT                  = 5005
@@ -147,7 +150,7 @@ func readConfiguration(paths []string, config map[string]string) (err error) {
 
 func getConfiguration(writer http.ResponseWriter, request *http.Request) {
 	config := make(map[string]string)
-	if readConfiguration(cfgpaths, config) == nil {
+	if readConfiguration(configurationPaths, config) == nil {
 		sendHttpResponse(writer, makeResponse(http.StatusOK, config))
 	} else {
 		errResponse := makeErrorResponse(http.StatusInternalServerError, "Failed to read configuration data", "internal-error")
