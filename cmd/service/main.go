@@ -42,15 +42,15 @@ import (
 }
 */
 
-type ServiceResponse struct {
+type serviceResponse struct {
 	Result     map[string]string `json:"result"`
 	Status     string            `json:"status"`
 	StatusCode int               `json:"status-code"`
 	Type       string            `json:"type"`
 }
 
-func makeErrorResponse(code int, message, kind string) *ServiceResponse {
-	return &ServiceResponse{
+func makeErrorResponse(code int, message, kind string) *serviceResponse {
+	return &serviceResponse{
 		Type:       "error",
 		Status:     http.StatusText(code),
 		StatusCode: code,
@@ -61,8 +61,8 @@ func makeErrorResponse(code int, message, kind string) *ServiceResponse {
 	}
 }
 
-func makeResponse(status int, result map[string]string) *ServiceResponse {
-	resp := &ServiceResponse{
+func makeResponse(status int, result map[string]string) *serviceResponse {
+	resp := &serviceResponse{
 		Type:       "sync",
 		Status:     http.StatusText(status),
 		StatusCode: status,
@@ -76,7 +76,7 @@ func makeResponse(status int, result map[string]string) *ServiceResponse {
 	return resp
 }
 
-func sendHTTPResponse(writer http.ResponseWriter, response *ServiceResponse) {
+func sendHTTPResponse(writer http.ResponseWriter, response *serviceResponse) {
 	writer.WriteHeader(response.StatusCode)
 	data, _ := json.Marshal(response)
 	fmt.Fprintln(writer, string(data))

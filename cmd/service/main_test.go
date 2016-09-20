@@ -94,7 +94,7 @@ func (s *S) TestGetConfiguration(c *check.C) {
 	c.Assert(err, check.IsNil)
 
 	// Parse the returned JSON
-	var resp ServiceResponse
+	var resp serviceResponse
 	err = json.Unmarshal(body, &resp)
 	c.Assert(err, check.IsNil)
 
@@ -121,7 +121,7 @@ func (s *S) TestChangeConfiguration(c *check.C) {
 	c.Assert(err, check.IsNil)
 
 	// Parse the returned JSON
-	var resp ServiceResponse
+	var resp serviceResponse
 	err = json.Unmarshal(body, &resp)
 	c.Assert(err, check.IsNil)
 
@@ -147,7 +147,7 @@ func (s *S) TestChangeConfiguration(c *check.C) {
 	c.Assert(err, check.IsNil)
 
 	// Parse the returned JSON
-	resp = ServiceResponse{}
+	resp = serviceResponse{}
 	err = json.Unmarshal(body, &resp)
 	c.Assert(err, check.IsNil)
 
@@ -186,7 +186,7 @@ func (s *S) TestChangeConfiguration(c *check.C) {
 	c.Assert(err, check.IsNil)
 
 	// Parse the returned JSON
-	resp = ServiceResponse{}
+	resp = serviceResponse{}
 	err = json.Unmarshal(body, &resp)
 	c.Assert(err, check.IsNil)
 
