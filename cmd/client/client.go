@@ -38,14 +38,27 @@ func getServiceConfigurationURI() string {
 	return fmt.Sprintf("http://localhost:%d%s", servicePort, configurationV1Uri)
 }
 
+type doer interface {
+	Do(*http.Request) (*http.Response, error)
+}
+
+var customDoer doer
+
 func sendHTTPRequest(uri string, method string, body io.Reader) (*serviceResponse, error) {
 	req, err := http.NewRequest(method, uri, body)
 	if err != nil {
 		return nil, err
 	}
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	var resp *http.Response
+
+	if customDoer == nil {
+		client := &http.Client{}
+		resp, err = client.Do(req)
+	} else {
+		resp, err = customDoer.Do(req)
+	}
+
 	if err != nil {
 		return nil, err
 	}
