@@ -34,6 +34,11 @@ parts:
         - bin/ap.sh
         - bin/helper.sh
         - conf/default-config
+  common:
+    plugin: dump
+    source: .
+    snap:
+      - copyright.hostapd
   network-utils:
     plugin: nil
     stage-packages:
