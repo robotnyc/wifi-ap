@@ -8,6 +8,7 @@ description: |
   easily connect to.
   Please find the source of this snap at:
   https://code.launchpad.net/~snappy-hwe-team/snappy-hwe-snaps/+git/wifi-ap
+grade: stable
 
 apps:
   backend:
@@ -19,17 +20,20 @@ apps:
       - network-bind
       - network-manager
   config:
-    command: bin/config.sh
+    command: bin/client config
+    plugs:
+      - network
   management-service:
     command: bin/service
     daemon: simple
+    plugs:
+      - network-bind
 
 parts:
   scripts:
     plugin: dump
     source: .
     snap:
-        - bin/config.sh
         - bin/config-internal.sh
         - bin/ap.sh
         - bin/helper.sh
@@ -53,9 +57,15 @@ parts:
     snap:
       - $binaries
 
+  config:
+    plugin: go
+    source: cmd/client
+    snap:
+      - bin
+
   management-service:
     plugin: go
-    source: ./service
+    source: cmd/service
     snap:
       - bin
 

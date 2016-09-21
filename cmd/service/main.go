@@ -23,6 +23,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -41,15 +42,15 @@ import (
 }
 */
 
-type Response struct {
+type serviceResponse struct {
 	Result     map[string]string `json:"result"`
 	Status     string            `json:"status"`
 	StatusCode int               `json:"status-code"`
 	Type       string            `json:"type"`
 }
 
-func makeErrorResponse(code int, message, kind string) Response {
-	return Response{
+func makeErrorResponse(code int, message, kind string) *serviceResponse {
+	return &serviceResponse{
 		Type:       "error",
 		Status:     http.StatusText(code),
 		StatusCode: code,
@@ -60,57 +61,65 @@ func makeErrorResponse(code int, message, kind string) Response {
 	}
 }
 
-func makeResponse(status int, result map[string]string) Response {
-	return Response{
+func makeResponse(status int, result map[string]string) *serviceResponse {
+	resp := &serviceResponse{
 		Type:       "sync",
 		Status:     http.StatusText(status),
 		StatusCode: status,
 		Result:     result,
 	}
+
+	if resp.Result == nil {
+		resp.Result = make(map[string]string)
+	}
+
+	return resp
 }
 
-func sendHttpResponse(writer http.ResponseWriter, response Response) {
+func sendHTTPResponse(writer http.ResponseWriter, response *serviceResponse) {
 	writer.WriteHeader(response.StatusCode)
 	data, _ := json.Marshal(response)
 	fmt.Fprintln(writer, string(data))
 }
 
 func getConfigOnPath(path string) string {
-	return path + "/config"
+	return filepath.Join(path, "config")
 }
 
 // Array of paths where the config file can be found.
 // The first one is readonly, the others are writable
 // they are readed in order and the configuration is merged
-var cfgpaths []string = []string{getConfigOnPath(os.Getenv("SNAP")),
-	getConfigOnPath(os.Getenv("SNAP_DATA")), getConfigOnPath(os.Getenv("SNAP_USER_DATA"))}
+var configurationPaths = []string{
+	filepath.Join(os.Getenv("SNAP"), "conf", "default-config"),
+	getConfigOnPath(os.Getenv("SNAP_DATA")),
+	getConfigOnPath(os.Getenv("SNAP_USER_DATA"))}
 
 const (
-	PORT                  = 5005
-	CONFIGURATION_API_URI = "/v1/configuration"
+	servicePort        = 5005
+	configurationV1Uri = "/v1/configuration"
 )
 
 func main() {
 	r := mux.NewRouter().StrictSlash(true)
 
-	r.HandleFunc(CONFIGURATION_API_URI, getConfiguration).Methods(http.MethodGet)
-	r.HandleFunc(CONFIGURATION_API_URI, changeConfiguration).Methods(http.MethodPost)
+	r.HandleFunc(configurationV1Uri, getConfiguration).Methods(http.MethodGet)
+	r.HandleFunc(configurationV1Uri, changeConfiguration).Methods(http.MethodPost)
 
-	log.Fatal(http.ListenAndServe("127.0.0.1:"+strconv.Itoa(PORT), r))
+	log.Fatal(http.ListenAndServe("127.0.0.1:"+strconv.Itoa(servicePort), r))
 }
 
 // Convert eg. WIFI_OPERATION_MODE to wifi.operation-mode
 func convertKeyToRepresentationFormat(key string) string {
-	new_key := strings.ToLower(key)
-	new_key = strings.Replace(new_key, "_", ".", 1)
-	return strings.Replace(new_key, "_", "-", -1)
+	newKey := strings.ToLower(key)
+	newKey = strings.Replace(newKey, "_", ".", 1)
+	return strings.Replace(newKey, "_", "-", -1)
 }
 
 func convertKeyToStorageFormat(key string) string {
 	// Convert eg. wifi.operation-mode to WIFI_OPERATION_MODE
-	key = strings.ToUpper(key)
-	key = strings.Replace(key, ".", "_", -1)
-	return strings.Replace(key, "-", "_", -1)
+	newKey := strings.ToUpper(key)
+	newKey = strings.Replace(newKey, ".", "_", -1)
+	return strings.Replace(newKey, "-", "_", -1)
 }
 
 func readConfigurationFile(filePath string, config map[string]string) (err error) {
@@ -147,11 +156,11 @@ func readConfiguration(paths []string, config map[string]string) (err error) {
 
 func getConfiguration(writer http.ResponseWriter, request *http.Request) {
 	config := make(map[string]string)
-	if readConfiguration(cfgpaths, config) == nil {
-		sendHttpResponse(writer, makeResponse(http.StatusOK, config))
+	if readConfiguration(configurationPaths, config) == nil {
+		sendHTTPResponse(writer, makeResponse(http.StatusOK, config))
 	} else {
 		errResponse := makeErrorResponse(http.StatusInternalServerError, "Failed to read configuration data", "internal-error")
-		sendHttpResponse(writer, errResponse)
+		sendHTTPResponse(writer, errResponse)
 	}
 }
 
@@ -188,7 +197,7 @@ func changeConfiguration(writer http.ResponseWriter, request *http.Request) {
 	file, err := os.Create(confWrite)
 	if err != nil {
 		errResponse := makeErrorResponse(http.StatusInternalServerError, "Can't write configuration file", "internal-error")
-		sendHttpResponse(writer, errResponse)
+		sendHTTPResponse(writer, errResponse)
 		return
 	}
 	defer file.Close()
@@ -196,14 +205,14 @@ func changeConfiguration(writer http.ResponseWriter, request *http.Request) {
 	body, err := ioutil.ReadAll(request.Body)
 	if err != nil {
 		errResponse := makeErrorResponse(http.StatusInternalServerError, "Error reading the request body", "internal-error")
-		sendHttpResponse(writer, errResponse)
+		sendHTTPResponse(writer, errResponse)
 		return
 	}
 
 	var items map[string]string
 	if json.Unmarshal(body, &items) != nil {
 		errResponse := makeErrorResponse(http.StatusInternalServerError, "Malformed request", "internal-error")
-		sendHttpResponse(writer, errResponse)
+		sendHTTPResponse(writer, errResponse)
 		return
 	}
 
@@ -213,5 +222,5 @@ func changeConfiguration(writer http.ResponseWriter, request *http.Request) {
 		file.WriteString(fmt.Sprintf("%s=%s\n", key, value))
 	}
 
-	sendHttpResponse(writer, makeResponse(http.StatusOK, nil))
+	sendHTTPResponse(writer, makeResponse(http.StatusOK, nil))
 }
