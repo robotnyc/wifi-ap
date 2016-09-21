@@ -62,12 +62,18 @@ parts:
     source: cmd/client
     snap:
       - bin
+    build-packages:
+      - golang-go-flags-dev
+      - golang-github-gorilla-mux-dev
 
   management-service:
     plugin: go
     source: cmd/service
     snap:
       - bin
+    build-packages:
+      - golang-go-flags-dev
+      - golang-github-gorilla-mux-dev
 
   dnsmasq:
     plugin: make
