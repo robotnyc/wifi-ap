@@ -87,10 +87,14 @@ if [ "$WIFI_INTERFACE_MODE" = "direct" ] ; then
 	assert_not_managed_by_ifupdown $iface
 fi
 
-# Prevent network-manager from touching the interface we want to use. If
-# network-manager was configured to use the interface its nothing we want
-# to prevent here as this is how the user configured the system.
-$SNAP/bin/nmcli d set $iface managed no
+
+nm_status=`$SNAP/bin/nmcli -t -f RUNNING general`
+if [ "$nm_status" = "running" ] ; then
+	# Prevent network-manager from touching the interface we want to use. If
+	# network-manager was configured to use the interface its nothing we want
+	# to prevent here as this is how the user configured the system.
+	$SNAP/bin/nmcli d set $iface managed none
+fi
 
 # Initial wifi interface configuration
 ifconfig $iface up
@@ -102,10 +106,12 @@ if [ $? -ne 0 ] ; then
 		$SNAP/bin/iw dev $iface del
 	fi
 
-	# Hand interface back to network-manager. This will also trigger the
-	# auto connection process inside network-manager to get connected
-	# with the previous network.
-	$SNAP/bin/nmcli d set $iface managed yes
+	if [ "$nm_status" = "running" ] ; then
+		# Hand interface back to network-manager. This will also trigger the
+		# auto connection process inside network-manager to get connected
+		# with the previous network.
+		$SNAP/bin/nmcli d set $iface managed yes
+	fi
 
 	exit 1
 fi
