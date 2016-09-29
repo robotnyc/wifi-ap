@@ -72,7 +72,6 @@ parts:
     snap:
       - bin
     build-packages:
-      - golang-go-flags-dev
       - golang-github-gorilla-mux-dev
 
   dnsmasq:
