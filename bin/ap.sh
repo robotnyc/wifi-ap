@@ -93,7 +93,7 @@ if [ "$nm_status" = "running" ] ; then
 	# Prevent network-manager from touching the interface we want to use. If
 	# network-manager was configured to use the interface its nothing we want
 	# to prevent here as this is how the user configured the system.
-	$SNAP/bin/nmcli d set $iface managed none
+	$SNAP/bin/nmcli d set $iface managed no
 fi
 
 # Initial wifi interface configuration
