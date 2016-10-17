@@ -183,8 +183,26 @@ var allSteps = [...]wizardStep{
 		return nil
 	},
 
+	// Enable or disable connection sharing
+	func(configuration map[string]string, reader *bufio.Reader) error {
+		fmt.Print("Do you want to enable connection sharing? (y/n) ")
+		switch resp := strings.ToLower(readUserInput(reader)); resp {
+		case "y":
+			configuration["share.disabled"] = "0"
+		case "n":
+			configuration["share.disabled"] = "1"
+		default:
+			return fmt.Errorf("Invalid answer: %s", resp)
+		}
+
+		return nil
+	},
+
 	// Select the wired interface to share
 	func(configuration map[string]string, reader *bufio.Reader) error {
+		if configuration["share.disabled"] == "1" {
+			return nil
+		}
 		ifaces := findExistingInterfaces(false)
 		if len(ifaces) == 0 {
 			fmt.Println("No network interface available which's connection can be shared. Disabling connection sharing.")

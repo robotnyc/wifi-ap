@@ -48,7 +48,7 @@ shutdown() {
 		iface=$DEFAULT_ACCESS_POINT_INTERFACE
 	fi
 
-	if [ "$SHARE_NETWORK_INTERFACE" != "none" ] ; then
+	if [ $SHARE_DISABLED -eq 0 ] ; then
 		# flush forwarding rules out
 		iptables --table nat --delete POSTROUTING --out-interface $SHARE_NETWORK_INTERFACE -j MASQUERADE
 		iptables --delete FORWARD --in-interface $iface -j ACCEPT
@@ -120,7 +120,7 @@ fi
 ifconfig $iface $WIFI_ADDRESS netmask $WIFI_NETMASK
 sleep 2
 
-if [ "$SHARE_NETWORK_INTERFACE" != "none" ] ; then
+if [ $SHARE_DISABLED -eq 0 ] ; then
 	# Enable NAT to forward our network connection
 	iptables --table nat --append POSTROUTING --out-interface $SHARE_NETWORK_INTERFACE -j MASQUERADE
 	iptables --append FORWARD --in-interface $iface -j ACCEPT
