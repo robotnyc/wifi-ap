@@ -236,7 +236,6 @@ func (cmd *wizardCommand) Execute(args []string) error {
 		}
 	}
 
-	// fmt.Println("configuration: ", configuration)
 	return applyConfiguration(configuration)
 }
 
