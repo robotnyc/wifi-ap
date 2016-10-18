@@ -40,7 +40,8 @@ fi
 
 cleanup_on_exit() {
 	DNSMASQ_PID=$(cat $SNAP_DATA/dnsmasq.pid)
-	kill -TERM $DNSMASQ_PID
+	# If dnsmasq is already gone don't error out here
+	kill -TERM $DNSMASQ_PID || true
 	wait $DNSMASQ_PID
 
 	iface=$WIFI_INTERFACE
