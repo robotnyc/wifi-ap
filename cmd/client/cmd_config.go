@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sort"
 )
 
 type setCommand struct{}
@@ -57,8 +58,13 @@ func (cmd *getCommand) Execute(args []string) error {
 			return fmt.Errorf("Config item '%s' does not exist", wantedKey)
 		}
 	} else {
-		for key, val := range response.Result {
-			fmt.Fprintf(os.Stdout, "%s: %s\n", key, val)
+		sortedKeys := make([]string, 0, len(response.Result))
+		for key, _ := range response.Result {
+			sortedKeys = append(sortedKeys, key)
+		}
+		sort.Strings(sortedKeys)
+		for n := range sortedKeys {
+			fmt.Fprintf(os.Stdout, "%s: %s\n", sortedKeys[n], response.Result[sortedKeys[n]])
 		}
 	}
 
