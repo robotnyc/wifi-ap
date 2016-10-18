@@ -38,7 +38,7 @@ if ! ifconfig $WIFI_INTERFACE ; then
 	exit 1
 fi
 
-shutdown() {
+cleanup_on_exit() {
 	DNSMASQ_PID=$(cat $SNAP_DATA/dnsmasq.pid)
 	kill -TERM $DNSMASQ_PID
 	wait $DNSMASQ_PID
@@ -198,9 +198,9 @@ function exit_handler() {
 	# Wait until hostapd is correctly terminated before we continue
 	# doing anything
 	wait $HOSTAPD_PID
-	shutdown
+	cleanup_on_exit
 	exit 0
 }
 
 wait $HOSTAPD_PID
-shutdown
+cleanup_on_exit
