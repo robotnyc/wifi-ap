@@ -44,21 +44,22 @@ func (cmd *setCommand) Execute(args []string) error {
 type getCommand struct{}
 
 func (cmd *getCommand) Execute(args []string) error {
-	if len(args) != 1 {
-		return fmt.Errorf("usage: %s get <key>\n", os.Args[0])
-	}
-
 	response, err := sendHTTPRequest(getServiceConfigurationURI(), "GET", nil)
 	if err != nil {
 		return err
 	}
 
-	wantedKey := args[0]
-
-	if val, ok := response.Result[wantedKey]; ok {
-		fmt.Fprintf(os.Stdout, "%s\n", val)
+	if len(args) == 1 {
+		wantedKey := args[0]
+		if val, ok := response.Result[wantedKey]; ok {
+			fmt.Fprintf(os.Stdout, "%s\n", val)
+		} else {
+			return fmt.Errorf("Config item '%s' does not exist", wantedKey)
+		}
 	} else {
-		return fmt.Errorf("Config item '%s' does not exist", wantedKey)
+		for key, val := range response.Result {
+			fmt.Fprintf(os.Stdout, "%s: %s\n", key, val)
+		}
 	}
 
 	return nil
