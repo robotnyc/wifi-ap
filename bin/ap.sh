@@ -58,6 +58,13 @@ cleanup_on_exit() {
 	if [ "$WIFI_INTERFACE_MODE" == "virtual" ] ; then
 		$SNAP/bin/iw dev $iface del
 	fi
+
+	if [ is_nm_running ] ; then
+		# Hand interface back to network-manager. This will also trigger the
+		# auto connection process inside network-manager to get connected
+		# with the previous network.
+		$SNAP/bin/nmcli d set $iface managed yes
+	fi
 }
 
 iface=$WIFI_INTERFACE
@@ -88,8 +95,7 @@ if [ "$WIFI_INTERFACE_MODE" = "direct" ] ; then
 fi
 
 
-nm_status=`$SNAP/bin/nmcli -t -f RUNNING general`
-if [ "$nm_status" = "running" ] ; then
+if [ is_nm_running ] ; then
 	# Prevent network-manager from touching the interface we want to use. If
 	# network-manager was configured to use the interface its nothing we want
 	# to prevent here as this is how the user configured the system.
@@ -106,7 +112,7 @@ if [ $? -ne 0 ] ; then
 		$SNAP/bin/iw dev $iface del
 	fi
 
-	if [ "$nm_status" = "running" ] ; then
+	if [ is_nm_running ] ; then
 		# Hand interface back to network-manager. This will also trigger the
 		# auto connection process inside network-manager to get connected
 		# with the previous network.

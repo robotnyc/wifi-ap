@@ -50,3 +50,9 @@ generate_dnsmasq_config() {
 	EOF
 	} > $1
 }
+
+is_nm_running() {
+	nm_status=`$SNAP/bin/nmcli -t -f RUNNING general`
+	[ "$nm_status" = "running" ] && return 1
+	return 0
+}
