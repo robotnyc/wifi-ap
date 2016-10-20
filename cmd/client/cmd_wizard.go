@@ -87,7 +87,7 @@ var allSteps = [...]wizardStep{
 
 	// Ask for WiFi ESSID
 	func(configuration map[string]string, reader *bufio.Reader) error {
-		fmt.Print("Insert the ESSID of your access point: ")
+		fmt.Print("Which SSID you want to use for the access point: ")
 		iface := readUserInput(reader)
 		if len(iface) == 0 || len(iface) > 31 {
 			return fmt.Errorf("ESSID length must be between 1 and 31 characters")
@@ -117,7 +117,7 @@ var allSteps = [...]wizardStep{
 		if configuration["wifi.security"] == "open" {
 			return nil
 		}
-		fmt.Print("Insert your WPA2 passphrase: ")
+		fmt.Print("Please enter the WPA2 passphrase: ")
 		key := readUserInput(reader)
 		if len(key) < 8 || len(key) > 63 {
 			return fmt.Errorf("WPA2 passphrase must be between 8 and 63 characters")
