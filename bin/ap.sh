@@ -38,9 +38,10 @@ if ! ifconfig $WIFI_INTERFACE ; then
 	exit 1
 fi
 
-shutdown() {
+cleanup_on_exit() {
 	DNSMASQ_PID=$(cat $SNAP_DATA/dnsmasq.pid)
-	kill -TERM $DNSMASQ_PID
+	# If dnsmasq is already gone don't error out here
+	kill -TERM $DNSMASQ_PID || true
 	wait $DNSMASQ_PID
 
 	iface=$WIFI_INTERFACE
@@ -48,7 +49,7 @@ shutdown() {
 		iface=$DEFAULT_ACCESS_POINT_INTERFACE
 	fi
 
-	if [ "$SHARE_NETWORK_INTERFACE" != "none" ] ; then
+	if [ $SHARE_DISABLED -eq 0 ] ; then
 		# flush forwarding rules out
 		iptables --table nat --delete POSTROUTING --out-interface $SHARE_NETWORK_INTERFACE -j MASQUERADE
 		iptables --delete FORWARD --in-interface $iface -j ACCEPT
@@ -57,6 +58,13 @@ shutdown() {
 
 	if [ "$WIFI_INTERFACE_MODE" == "virtual" ] ; then
 		$SNAP/bin/iw dev $iface del
+	fi
+
+	if [ is_nm_running ] ; then
+		# Hand interface back to network-manager. This will also trigger the
+		# auto connection process inside network-manager to get connected
+		# with the previous network.
+		$SNAP/bin/nmcli d set $iface managed yes
 	fi
 }
 
@@ -88,8 +96,7 @@ if [ "$WIFI_INTERFACE_MODE" = "direct" ] ; then
 fi
 
 
-nm_status=`$SNAP/bin/nmcli -t -f RUNNING general`
-if [ "$nm_status" = "running" ] ; then
+if [ is_nm_running ] ; then
 	# Prevent network-manager from touching the interface we want to use. If
 	# network-manager was configured to use the interface its nothing we want
 	# to prevent here as this is how the user configured the system.
@@ -106,7 +113,7 @@ if [ $? -ne 0 ] ; then
 		$SNAP/bin/iw dev $iface del
 	fi
 
-	if [ "$nm_status" = "running" ] ; then
+	if [ is_nm_running ] ; then
 		# Hand interface back to network-manager. This will also trigger the
 		# auto connection process inside network-manager to get connected
 		# with the previous network.
@@ -120,7 +127,7 @@ fi
 ifconfig $iface $WIFI_ADDRESS netmask $WIFI_NETMASK
 sleep 2
 
-if [ "$SHARE_NETWORK_INTERFACE" != "none" ] ; then
+if [ $SHARE_DISABLED -eq 0 ] ; then
 	# Enable NAT to forward our network connection
 	iptables --table nat --append POSTROUTING --out-interface $SHARE_NETWORK_INTERFACE -j MASQUERADE
 	iptables --append FORWARD --in-interface $iface -j ACCEPT
@@ -198,9 +205,9 @@ function exit_handler() {
 	# Wait until hostapd is correctly terminated before we continue
 	# doing anything
 	wait $HOSTAPD_PID
-	shutdown
+	cleanup_on_exit
 	exit 0
 }
 
 wait $HOSTAPD_PID
-shutdown
+cleanup_on_exit

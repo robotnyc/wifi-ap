@@ -63,9 +63,19 @@ type wizardStep func(map[string]string, *bufio.Reader) error
 var allSteps = [...]wizardStep{
 	// determine the WiFi interface
 	func(configuration map[string]string, reader *bufio.Reader) error {
-		fmt.Println("What is the name of the wireless interface you want to use?")
 		ifaces := findExistingInterfaces(true)
-		fmt.Print("Available interfaces are: " + strings.Join(ifaces, ", ") + ": ")
+		if len(ifaces) == 0 {
+			return fmt.Errorf("There are no valid wireless network interfaces available")
+		} else if len(ifaces) == 1 {
+			fmt.Println("Automatically selected only available wireless network interface " + ifaces[0])
+			return nil
+		}
+		fmt.Print("Which wireless interface you want to use? ")
+		ifacesVerb := "are"
+		if len(ifaces) == 1 {
+			ifacesVerb = "is"
+		}
+		fmt.Printf("Available %s %s:", ifacesVerb, strings.Join(ifaces, ", "))
 		iface := readUserInput(reader)
 		if re := regexp.MustCompile("^[[:alnum:]]+$"); !re.MatchString(iface) {
 			return fmt.Errorf("Invalid interface name '%s' given", iface)
@@ -77,7 +87,7 @@ var allSteps = [...]wizardStep{
 
 	// Ask for WiFi ESSID
 	func(configuration map[string]string, reader *bufio.Reader) error {
-		fmt.Print("Insert the ESSID of your access point: ")
+		fmt.Print("Which SSID you want to use for the access point: ")
 		iface := readUserInput(reader)
 		if len(iface) == 0 || len(iface) > 31 {
 			return fmt.Errorf("ESSID length must be between 1 and 31 characters")
@@ -89,7 +99,7 @@ var allSteps = [...]wizardStep{
 
 	// Select WiFi encryption type
 	func(configuration map[string]string, reader *bufio.Reader) error {
-		fmt.Print("Do you want to protect your network with a WPA2 password? (y/n) ")
+		fmt.Print("Do you want to protect your network with a WPA2 password instead of staying open for everyone? (y/n) ")
 		switch resp := strings.ToLower(readUserInput(reader)); resp {
 		case "y":
 			configuration["wifi.security"] = "wpa2"
@@ -107,7 +117,7 @@ var allSteps = [...]wizardStep{
 		if configuration["wifi.security"] == "open" {
 			return nil
 		}
-		fmt.Print("Insert your WPA2 passphrase: ")
+		fmt.Print("Please enter the WPA2 passphrase: ")
 		key := readUserInput(reader)
 		if len(key) < 8 || len(key) > 63 {
 			return fmt.Errorf("WPA2 passphrase must be between 8 and 63 characters")
@@ -151,9 +161,10 @@ var allSteps = [...]wizardStep{
 		}
 
 		fmt.Printf("How many host do you want your DHCP pool to hold to? (1-%d) ", maxpoolsize)
-		inputhost, err := strconv.ParseUint(readUserInput(reader), 10, 8)
+		input := readUserInput(reader)
+		inputhost, err := strconv.ParseUint(input, 10, 8)
 		if err != nil {
-			return err
+			return fmt.Errorf("Invalid answer: %s", input)
 		}
 		if byte(inputhost) > maxpoolsize {
 			return fmt.Errorf("%d is bigger than the maximum pool size %d", inputhost, maxpoolsize)
@@ -172,11 +183,38 @@ var allSteps = [...]wizardStep{
 		return nil
 	},
 
+	// Enable or disable connection sharing
+	func(configuration map[string]string, reader *bufio.Reader) error {
+		fmt.Print("Do you want to enable connection sharing? (y/n) ")
+		switch resp := strings.ToLower(readUserInput(reader)); resp {
+		case "y":
+			configuration["share.disabled"] = "0"
+		case "n":
+			configuration["share.disabled"] = "1"
+		default:
+			return fmt.Errorf("Invalid answer: %s", resp)
+		}
+
+		return nil
+	},
+
 	// Select the wired interface to share
 	func(configuration map[string]string, reader *bufio.Reader) error {
-		fmt.Println("What is the wired interface do you want to share?")
+		if configuration["share.disabled"] == "1" {
+			return nil
+		}
 		ifaces := findExistingInterfaces(false)
-		fmt.Print("Available interfaces are: " + strings.Join(ifaces, ", ") + ": ")
+		if len(ifaces) == 0 {
+			fmt.Println("No network interface available which's connection can be shared. Disabling connection sharing.")
+			configuration["share.disabled"] = "1"
+			return nil
+		}
+		ifacesVerb := "are"
+		if len(ifaces) == 1 {
+			ifacesVerb = "is"
+		}
+		fmt.Println("Which network interface you want to use for connection sharing?")
+		fmt.Printf("Available %s %s: ", ifacesVerb, strings.Join(ifaces, ", "))
 		iface := readUserInput(reader)
 		if re := regexp.MustCompile("^[[:alnum:]]+$"); !re.MatchString(iface) {
 			return fmt.Errorf("Invalid interface name '%s' given", iface)
@@ -236,7 +274,6 @@ func (cmd *wizardCommand) Execute(args []string) error {
 		}
 	}
 
-	// fmt.Println("configuration: ", configuration)
 	return applyConfiguration(configuration)
 }
 

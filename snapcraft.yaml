@@ -23,6 +23,10 @@ apps:
     command: bin/client config
     plugs:
       - network
+  setup-wizard:
+    command: bin/client wizard
+    plugs:
+      - network
   management-service:
     command: bin/service
     daemon: simple

@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sort"
 )
 
 type setCommand struct{}
@@ -44,21 +45,27 @@ func (cmd *setCommand) Execute(args []string) error {
 type getCommand struct{}
 
 func (cmd *getCommand) Execute(args []string) error {
-	if len(args) != 1 {
-		return fmt.Errorf("usage: %s get <key>\n", os.Args[0])
-	}
-
 	response, err := sendHTTPRequest(getServiceConfigurationURI(), "GET", nil)
 	if err != nil {
 		return err
 	}
 
-	wantedKey := args[0]
-
-	if val, ok := response.Result[wantedKey]; ok {
-		fmt.Fprintf(os.Stdout, "%s\n", val)
+	if len(args) == 1 {
+		wantedKey := args[0]
+		if val, ok := response.Result[wantedKey]; ok {
+			fmt.Fprintf(os.Stdout, "%s\n", val)
+		} else {
+			return fmt.Errorf("Config item '%s' does not exist", wantedKey)
+		}
 	} else {
-		return fmt.Errorf("Config item '%s' does not exist", wantedKey)
+		sortedKeys := make([]string, 0, len(response.Result))
+		for key, _ := range response.Result {
+			sortedKeys = append(sortedKeys, key)
+		}
+		sort.Strings(sortedKeys)
+		for n := range sortedKeys {
+			fmt.Fprintf(os.Stdout, "%s: %s\n", sortedKeys[n], response.Result[sortedKeys[n]])
+		}
 	}
 
 	return nil
