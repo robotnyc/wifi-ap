@@ -75,7 +75,7 @@ var allSteps = [...]wizardStep{
 		if len(ifaces) == 1 {
 			ifacesVerb = "is"
 		}
-		fmt.Print("Available " + ifacesVerb + " " + strings.Join(ifaces, ", ") + ": ")
+		fmt.Printf("Available %s %s:", ifacesVerb, strings.Join(ifaces, ", "))
 		iface := readUserInput(reader)
 		if re := regexp.MustCompile("^[[:alnum:]]+$"); !re.MatchString(iface) {
 			return fmt.Errorf("Invalid interface name '%s' given", iface)
@@ -214,7 +214,7 @@ var allSteps = [...]wizardStep{
 			ifacesVerb = "is"
 		}
 		fmt.Println("Which network interface you want to use for connection sharing?")
-		fmt.Print("Available " + ifacesVerb + " " + strings.Join(ifaces, ", ") + ": ")
+		fmt.Printf("Available %s %s: ", ifacesVerb, strings.Join(ifaces, ", "))
 		iface := readUserInput(reader)
 		if re := regexp.MustCompile("^[[:alnum:]]+$"); !re.MatchString(iface) {
 			return fmt.Errorf("Invalid interface name '%s' given", iface)
