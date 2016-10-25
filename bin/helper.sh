@@ -16,11 +16,14 @@
 
 set -x
 
-wait_until_interface_is_available() {
+does_interface_exist() {
 	grep $1 /proc/net/dev &> /dev/null
-	while [ $? != 0 ] ; do
-		sleep 5
-		grep $1 /proc/net/dev &> /dev/null
+}
+
+wait_until_interface_is_available() {
+	while [ ! does_interface_exist $iface ] ; do
+		# Wait for 10ms
+		sleep 0.01
 	done
 }
 

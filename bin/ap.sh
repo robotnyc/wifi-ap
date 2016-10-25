@@ -56,7 +56,7 @@ cleanup_on_exit() {
 		sysctl -w net.ipv4.ip_forward=0
 	fi
 
-	if [ "$WIFI_INTERFACE_MODE" == "virtual" ] ; then
+	if [ "$WIFI_INTERFACE_MODE" == "virtual" ] && [ does_interface_exist $iface ] ; then
 		$SNAP/bin/iw dev $iface del
 	fi
 
@@ -69,14 +69,14 @@ cleanup_on_exit() {
 }
 
 iface=$WIFI_INTERFACE
-if [ "$WIFI_INTERFACE_MODE" == "virtual" ] ; then
+if [ "$WIFI_INTERFACE_MODE" = "virtual" ] ; then
 	iface=$DEFAULT_ACCESS_POINT_INTERFACE
 
 	# Make sure if the real wifi interface is connected we use
 	# the same channel for our AP as otherwise the created AP
 	# will not work.
 	channel_in_use=$(iw dev $WIFI_INTERFACE info |awk '/channel/{print$2}')
-	if [ $channel_in_use != $WIFI_CHANNEL ] ; then
+	if [ "$channel_in_use" != "$WIFI_CHANNEL" ] ; then
 		echo "ERROR: You configured a different channel than the WiFi device"
 		echo "       is currently using. This will not work as most devices"
 		echo "       require you to operate for AP and STA on the same channel."
@@ -88,7 +88,11 @@ fi
 if [ "$WIFI_INTERFACE_MODE" = "virtual" ] ; then
 	iface=$DEFAULT_ACCESS_POINT_INTERFACE
 	$SNAP/bin/iw dev $WIFI_INTERFACE interface add $iface type __ap
-	sleep 2
+	if [ $? -ne 0 ] ; then
+		echo "ERROR: Failed to create virtual WiFi network interface"
+		cleanup_on_exit
+	fi
+	wait_until_interface_is_available $iface
 fi
 if [ "$WIFI_INTERFACE_MODE" = "direct" ] ; then
 	# If WiFi interface is managed by ifupdown or network-manager leave it as is
@@ -136,10 +140,6 @@ fi
 
 generate_dnsmasq_config $SNAP_DATA/dnsmasq.conf
 $SNAP/bin/dnsmasq -k -C $SNAP_DATA/dnsmasq.conf -l $SNAP_DATA/dnsmasq.leases -x $SNAP_DATA/dnsmasq.pid &
-
-# Wait a bit until our WiFi network interface is correctly
-# setup by dnsmasq
-wait_until_interface_is_available $iface
 
 driver=$WIFI_HOSTAPD_DRIVER
 if [ "$driver" == "rtl8188" ] ; then
