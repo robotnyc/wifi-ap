@@ -264,12 +264,7 @@ type wizardCommand struct{}
 
 func (cmd *wizardCommand) Execute(args []string) error {
 	// Setup some sane default values, we don't ask the user for everything
-	configuration := map[string]string{
-		"disabled":            "0",
-		"wifi.channel":        "6",
-		"wifi.operation-mode": "g",
-		"dhcp.lease-time":     "12h",
-	}
+	configuration := map[string]string{}
 
 	reader := bufio.NewReader(os.Stdin)
 
