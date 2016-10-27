@@ -223,6 +223,21 @@ var allSteps = [...]wizardStep{
 
 		return nil
 	},
+
+	func (configuration map[string]string, reader *bufio.Reader) error {
+		fmt.Print("Do you want to enable the AP now? (y/n) ")
+		switch resp := strings.ToLower(readUserInput(reader)); resp {
+		case "y":
+			configuration["disabled"] = "0"
+
+			fmt.Print("In order to get the AP correctly enabled you have to restart the backend service:")
+			fmt.Print(" $ systemctl restart snap.wifi-ap.backend")
+		case "n":
+			configuration["disabled"] = "1"
+		default:
+			return fmt.Errorf("Invalid answer: %s", resp)
+		}
+	}
 }
 
 // Use the REST API to set the configuration
