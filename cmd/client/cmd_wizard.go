@@ -92,7 +92,7 @@ var allSteps = [...]wizardStep{
 		if len(iface) == 0 || len(iface) > 31 {
 			return fmt.Errorf("ESSID length must be between 1 and 31 characters")
 		}
-		configuration["wifi.essid"] = iface
+		configuration["wifi.ssid"] = iface
 
 		return nil
 	},
