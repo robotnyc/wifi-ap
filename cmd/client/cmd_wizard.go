@@ -92,7 +92,7 @@ var allSteps = [...]wizardStep{
 		if len(iface) == 0 || len(iface) > 31 {
 			return fmt.Errorf("ESSID length must be between 1 and 31 characters")
 		}
-		configuration["wifi.essid"] = iface
+		configuration["wifi.ssid"] = iface
 
 		return nil
 	},
@@ -122,7 +122,7 @@ var allSteps = [...]wizardStep{
 		if len(key) < 8 || len(key) > 63 {
 			return fmt.Errorf("WPA2 passphrase must be between 8 and 63 characters")
 		}
-		configuration["wifi.passphrase"] = key
+		configuration["wifi.security-passphrase"] = key
 
 		return nil
 	},
@@ -223,6 +223,23 @@ var allSteps = [...]wizardStep{
 
 		return nil
 	},
+
+	func (configuration map[string]string, reader *bufio.Reader) error {
+		fmt.Print("Do you want to enable the AP now? (y/n) ")
+		switch resp := strings.ToLower(readUserInput(reader)); resp {
+		case "y":
+			configuration["disabled"] = "0"
+
+			fmt.Println("In order to get the AP correctly enabled you have to restart the backend service:")
+			fmt.Println(" $ systemctl restart snap.wifi-ap.backend")
+		case "n":
+			configuration["disabled"] = "1"
+		default:
+			return fmt.Errorf("Invalid answer: %s", resp)
+		}
+
+		return nil
+	},
 }
 
 // Use the REST API to set the configuration
@@ -249,12 +266,7 @@ type wizardCommand struct{}
 
 func (cmd *wizardCommand) Execute(args []string) error {
 	// Setup some sane default values, we don't ask the user for everything
-	configuration := map[string]string{
-		"disabled":            "0",
-		"wifi.channel":        "6",
-		"wifi.operation-mode": "g",
-		"dhcp.lease-time":     "12h",
-	}
+	configuration := map[string]string{}
 
 	reader := bufio.NewReader(os.Stdin)
 

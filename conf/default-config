@@ -21,7 +21,7 @@ DEBUG=0
 
 # Default configuration
 WIFI_INTERFACE=wlan0
-WIFI_ADDRESS=192.168.7.1
+WIFI_ADDRESS=10.0.60.1
 WIFI_NETMASK=255.255.255.0
 
 # Possible options are: virtual, direct
@@ -52,7 +52,7 @@ WIFI_OPERATION_MODE="g"
 # clients. Set to 'none' for not shared network connection.
 SHARE_NETWORK_INTERFACE=eth0
 
-DHCP_RANGE_START=192.168.7.5
-DHCP_RANGE_STOP=192.168.7.100
+DHCP_RANGE_START=10.0.60.3
+DHCP_RANGE_STOP=10.0.60.20
 DHCP_LEASE_TIME="12h"
 
