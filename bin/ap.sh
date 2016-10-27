@@ -45,7 +45,7 @@ cleanup_on_exit() {
 	wait $DNSMASQ_PID
 
 	iface=$WIFI_INTERFACE
-	if [ "$WIFI_INTERFACE_MODE" == "virtual" ] ; then
+	if [ "$WIFI_INTERFACE_MODE" = "virtual" ] ; then
 		iface=$DEFAULT_ACCESS_POINT_INTERFACE
 	fi
 
@@ -56,7 +56,7 @@ cleanup_on_exit() {
 		sysctl -w net.ipv4.ip_forward=0
 	fi
 
-	if [ "$WIFI_INTERFACE_MODE" == "virtual" ] && [ does_interface_exist $iface ] ; then
+	if [ "$WIFI_INTERFACE_MODE" = "virtual" ] && does_interface_exist $iface ; then
 		$SNAP/bin/iw dev $iface del
 	fi
 
@@ -142,7 +142,7 @@ generate_dnsmasq_config $SNAP_DATA/dnsmasq.conf
 $SNAP/bin/dnsmasq -k -C $SNAP_DATA/dnsmasq.conf -l $SNAP_DATA/dnsmasq.leases -x $SNAP_DATA/dnsmasq.pid &
 
 driver=$WIFI_HOSTAPD_DRIVER
-if [ "$driver" == "rtl8188" ] ; then
+if [ "$driver" = "rtl8188" ] ; then
 	driver=rtl871xdrv
 fi
 
@@ -181,7 +181,7 @@ case "$WIFI_SECURITY" in
 esac
 
 EXTRA_ARGS=
-if [ "$DEBUG" == "1" ] ; then
+if [ "$DEBUG" = "1" ] ; then
 	EXTRA_ARGS="$EXTRA_ARGS -ddd -t"
 fi
 
