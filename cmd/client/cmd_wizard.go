@@ -237,7 +237,9 @@ var allSteps = [...]wizardStep{
 		default:
 			return fmt.Errorf("Invalid answer: %s", resp)
 		}
-	}
+
+		return nil
+	},
 }
 
 // Use the REST API to set the configuration
