@@ -230,8 +230,8 @@ var allSteps = [...]wizardStep{
 		case "y":
 			configuration["disabled"] = "0"
 
-			fmt.Print("In order to get the AP correctly enabled you have to restart the backend service:")
-			fmt.Print(" $ systemctl restart snap.wifi-ap.backend")
+			fmt.Println("In order to get the AP correctly enabled you have to restart the backend service:")
+			fmt.Println(" $ systemctl restart snap.wifi-ap.backend")
 		case "n":
 			configuration["disabled"] = "1"
 		default:
