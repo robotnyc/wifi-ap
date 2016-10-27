@@ -1,0 +1,13 @@
+summary: Test wifi-ap snap installation was successful
+
+execute: |
+    # Service should be up an running
+    systemctl status snap.wifi-ap.management-service
+
+    # Ensure all necessary plugs/slots are connected
+    snap interfaces | grep -Pzq ":network-control +wifi-ap"
+    snap interfaces | grep -Pzq ":firewall-control +wifi-ap"
+    snap interfaces | grep -Pzq ":network-bind +wifi-ap"
+    # As we don't have network-manager installed this one must
+    # be disconnected.
+    snap interfaces | grep -Pzq "(?s).*?\n- +wifi-ap:network-manager"
