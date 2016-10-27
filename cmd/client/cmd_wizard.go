@@ -122,7 +122,7 @@ var allSteps = [...]wizardStep{
 		if len(key) < 8 || len(key) > 63 {
 			return fmt.Errorf("WPA2 passphrase must be between 8 and 63 characters")
 		}
-		configuration["wifi.passphrase"] = key
+		configuration["wifi.security-passphrase"] = key
 
 		return nil
 	},
