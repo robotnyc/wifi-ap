@@ -1,0 +1,34 @@
+summary: Verify that the AP can accept an UTF8 SSID
+
+prepare: |
+    # Simulate two WiFi radio network interfaces
+    modprobe mac80211_hwsim radios=2
+
+restore: |
+    rmmod mac80211_hwsim
+
+execute: |
+    # Default configuration will use wlan0 which we just created
+    wifi-ap.config set disabled 0
+    wifi-ap.config set wifi.ssid 'Ubuntu👍'
+
+    systemctl restart snap.wifi-ap.backend
+    while ! systemctl status snap.wifi-ap.backend ; do
+        sleep 1
+    done
+
+    snap install wireless-tools
+
+    # Scan for existing WiFi networks and ensure our 'Ubuntu' one is part
+    # of the result
+    ifconfig wlan1 up
+    wireless-tools.iw dev wlan1 scan | fgrep 'SSID: Ubuntu\xf0\x9f\x91\x8d'
+
+    # There should be only a single network
+    network_count=`wireless-tools.iw dev wlan1 scan | fgrep -c 'SSID: Ubuntu\xf0\x9f\x91\x8d'`
+    test $network_count -eq 1
+
+    # Verify we can associate with the AP
+    wireless-tools.iw wlan1 connect 'Ubuntu👍'
+    wireless-tools.iw dev wlan1 link | fgrep 'SSID: Ubuntu\xf0\x9f\x91\x8d'
+

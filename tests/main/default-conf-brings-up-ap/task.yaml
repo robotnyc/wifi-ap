@@ -17,8 +17,6 @@ execute: |
     done
 
     snap install wireless-tools
-    # FIXME: Can be dropped once we have a snap-declaration for this in place
-    snap connect wireless-tools:network-control core:network-control
 
     # Scan for existing WiFi networks and ensure our 'Ubuntu' one is part
     # of the result
@@ -26,11 +24,11 @@ execute: |
     wireless-tools.iw dev wlan1 scan | grep 'SSID: Ubuntu'
     wireless-tools.iw dev wlan1 scan | grep 'primary channel: 6'
     # There should be only a single network
-    network_count=`wireless-tools.iw dev wlan1 scan | grep 'SSID: Ubuntu' | wc -l`
+    network_count=`wireless-tools.iw dev wlan1 scan | grep -c 'SSID: Ubuntu'`
     test $network_count -eq 1
     # The AP should not be secured by default
-    test ! `wireless-tools.iw dev wlan1 scan | grep 'WPA:'`
-    test ! `wireless-tools.iw dev wlan1 scan | grep 'RSN:'`
+    ! wireless-tools.iw dev wlan1 scan | grep 'WPA:'
+    ! wireless-tools.iw dev wlan1 scan | grep 'RSN:'
 
     # Verify we can associate with the AP
     wireless-tools.iw wlan1 connect Ubuntu
@@ -39,6 +37,6 @@ execute: |
     # And we should get an IP address assigned over DHCP
     dhclient wlan1
     # IP Address and routing needs to be correct
-    ifconfig wlan1 | grep 'inet addr:10.0.60'
-    ip route | grep '10.0.60.0/24 dev wlan1'
-    ip route | grep 'default via 10.0.60.1 dev wlan1'
+    ifconfig wlan1 | fgrep 'inet addr:10.0.60.1'
+    ip route | fgrep '10.0.60.0/24 dev wlan1'
+    ip route | fgrep 'default via 10.0.60.1 dev wlan1'

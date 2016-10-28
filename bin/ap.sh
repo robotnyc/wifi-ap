@@ -153,21 +153,45 @@ driver=$driver
 channel=$WIFI_CHANNEL
 macaddr_acl=0
 ignore_broadcast_ssid=0
-wmm_enabled=1
 ieee80211n=1
 ssid=$WIFI_SSID
+auth_algs=1
+utf8_ssid=1
 hw_mode=$WIFI_OPERATION_MODE
+
+# The wmm_* options are needed to enable AMPDU
+# and get decent 802.11n throughput
+wmm_enabled=1
+wmm_enabled=1
+wmm_ac_bk_cwmin=4
+wmm_ac_bk_cwmax=10
+wmm_ac_bk_aifs=7
+wmm_ac_bk_txop_limit=0
+wmm_ac_bk_acm=0
+wmm_ac_be_aifs=3
+wmm_ac_be_cwmin=4
+wmm_ac_be_cwmax=10
+wmm_ac_be_txop_limit=0
+wmm_ac_be_acm=0
+wmm_ac_vi_aifs=2
+wmm_ac_vi_cwmin=3
+wmm_ac_vi_cwmax=4
+wmm_ac_vi_txop_limit=94
+wmm_ac_vi_acm=0
+wmm_ac_vo_aifs=2
+wmm_ac_vo_cwmin=2
+wmm_ac_vo_cwmax=3
+wmm_ac_vo_txop_limit=47
+wmm_ac_vo_acm=0
 EOF
 
 case "$WIFI_SECURITY" in
 	open)
 		cat <<-EOF >> $SNAP_DATA/hostapd.conf
-		auth_algs=1
 		EOF
 		;;
 	wpa2)
 		cat <<-EOF >> $SNAP_DATA/hostapd.conf
-		auth_algs=3
 		wpa=2
 		wpa_key_mgmt=WPA-PSK
 		wpa_passphrase=$WIFI_SECURITY_PASSPHRASE
