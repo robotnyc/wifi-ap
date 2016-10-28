@@ -39,7 +39,7 @@ if ! ifconfig $WIFI_INTERFACE ; then
 fi
 
 cleanup_on_exit() {
-	DNSMASQ_PID=$(cat $SNAP_DATA/dnsmasq.pid)
+	read DNSMASQ_PID <$SNAP_DATA/dnsmasq.pid
 	# If dnsmasq is already gone don't error out here
 	kill -TERM $DNSMASQ_PID || true
 	wait $DNSMASQ_PID
@@ -60,7 +60,7 @@ cleanup_on_exit() {
 		$SNAP/bin/iw dev $iface del
 	fi
 
-	if [ is_nm_running ] ; then
+	if is_nm_running ; then
 		# Hand interface back to network-manager. This will also trigger the
 		# auto connection process inside network-manager to get connected
 		# with the previous network.
@@ -100,7 +100,7 @@ if [ "$WIFI_INTERFACE_MODE" = "direct" ] ; then
 fi
 
 
-if [ is_nm_running ] ; then
+if is_nm_running ; then
 	# Prevent network-manager from touching the interface we want to use. If
 	# network-manager was configured to use the interface its nothing we want
 	# to prevent here as this is how the user configured the system.
@@ -117,7 +117,7 @@ if [ $? -ne 0 ] ; then
 		$SNAP/bin/iw dev $iface del
 	fi
 
-	if [ is_nm_running ] ; then
+	if is_nm_running ; then
 		# Hand interface back to network-manager. This will also trigger the
 		# auto connection process inside network-manager to get connected
 		# with the previous network.
@@ -196,18 +196,6 @@ case "$WIFI_HOSTAPD_DRIVER" in
 esac
 
 # Startup hostapd with the configuration we've put in place
-$hostapd $EXTRA_ARGS $SNAP_DATA/hostapd.conf &
-HOSTAPD_PID=$!
-
-trap exit_handler EXIT
-function exit_handler() {
-	kill -TERM $HOSTAPD_PID
-	# Wait until hostapd is correctly terminated before we continue
-	# doing anything
-	wait $HOSTAPD_PID
-	cleanup_on_exit
-	exit 0
-}
-
-wait $HOSTAPD_PID
+$hostapd $EXTRA_ARGS $SNAP_DATA/hostapd.conf
 cleanup_on_exit
+exit 0
