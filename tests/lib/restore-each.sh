@@ -17,6 +17,6 @@ done
 # Ensure we have the same state for snapd as we had before
 systemctl stop snapd.service snapd.socket
 rm -rf /var/lib/snapd/*
-$(cd / && tar xzf $SPREAD_PATH/snapd-state.tar.gz)
+tar xzf $SPREAD_PATH/snapd-state.tar.gz -C /
 rm -rf /root/.snap
 systemctl start snapd.service snapd.socket
