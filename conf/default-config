@@ -48,6 +48,8 @@ WIFI_CHANNEL=6
 # g = IEEE 802.11g (2.4 GHz), ad = IEEE 802.11ad (60 GHz);
 WIFI_OPERATION_MODE="g"
 
+# Wether connection sharing is disabled or not
+SHARE_DISABLED=0
 # Network interface which connection will be shared with connected
 # clients. Set to 'none' for not shared network connection.
 SHARE_NETWORK_INTERFACE=eth0
