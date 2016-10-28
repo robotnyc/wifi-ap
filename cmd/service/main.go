@@ -191,10 +191,16 @@ func unescapeTextByShell(input string) string {
 }
 
 func changeConfiguration(writer http.ResponseWriter, request *http.Request) {
-	// Write in SNAP_DATA
-	confWrite := getConfigOnPath(os.Getenv("SNAP_DATA"))
+	path := getConfigOnPath(os.Getenv("SNAP_DATA"))
+	config := make(map[string]string)
+	if readConfiguration([]string{path}, config) != nil {
+		errResponse := makeErrorResponse(http.StatusInternalServerError,
+			"Failed to read existing configuration file", "internal-error")
+		sendHTTPResponse(writer, errResponse)
+		return
+	}
 
-	file, err := os.Create(confWrite)
+	file, err := os.Create(path)
 	if err != nil {
 		errResponse := makeErrorResponse(http.StatusInternalServerError, "Can't write configuration file", "internal-error")
 		sendHTTPResponse(writer, errResponse)
@@ -217,6 +223,10 @@ func changeConfiguration(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	for key, value := range items {
+		config[key] = value
+	}
+
+	for key, value := range config {
 		key = convertKeyToStorageFormat(key)
 		value = escapeTextForShell(value)
 		file.WriteString(fmt.Sprintf("%s=%s\n", key, value))
