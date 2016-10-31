@@ -1,0 +1,44 @@
+summary: Verify that the default configuration is able to spawn up an AP
+
+prepare: |
+    # Simulate two WiFi radio network interfaces
+    modprobe mac80211_hwsim radios=2
+
+restore: |
+    rmmod mac80211_hwsim
+
+execute: |
+    # Default configuration will use wlan0 which we just created
+    wifi-ap.config set disabled 0
+
+    systemctl restart snap.wifi-ap.backend
+    while ! systemctl status snap.wifi-ap.backend ; do
+        sleep 1
+    done
+
+    snap install wireless-tools
+    # FIXME: Can be dropped once we have a snap-declaration for this in place
+    snap connect wireless-tools:network-control core:network-control
+
+    # Scan for existing WiFi networks and ensure our 'Ubuntu' one is part
+    # of the result
+    ifconfig wlan1 up
+    wireless-tools.iw dev wlan1 scan | grep 'SSID: Ubuntu'
+    wireless-tools.iw dev wlan1 scan | grep 'primary channel: 6'
+    # There should be only a single network
+    network_count=`wireless-tools.iw dev wlan1 scan | grep 'SSID: Ubuntu' | wc -l`
+    test $network_count -eq 1
+    # The AP should not be secured by default
+    test ! `wireless-tools.iw dev wlan1 scan | grep 'WPA:'`
+    test ! `wireless-tools.iw dev wlan1 scan | grep 'RSN:'`
+
+    # Verify we can associate with the AP
+    wireless-tools.iw wlan1 connect Ubuntu
+    wireless-tools.iw dev wlan1 link | grep 'SSID: Ubuntu'
+
+    # And we should get an IP address assigned over DHCP
+    dhclient wlan1
+    # IP Address and routing needs to be correct
+    ifconfig wlan1 | grep 'inet addr:10.0.60'
+    ip route | grep '10.0.60.0/24 dev wlan1'
+    ip route | grep 'default via 10.0.60.1 dev wlan1'
