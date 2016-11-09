@@ -82,8 +82,8 @@ func sendHTTPResponse(writer http.ResponseWriter, response *serviceResponse) {
 	fmt.Fprintln(writer, string(data))
 }
 
-func getConfigOnPath(path string) string {
-	return filepath.Join(path, "config")
+func getConfigOnPath(confPath string) string {
+	return filepath.Join(confPath, "config")
 }
 
 // Array of paths where the config file can be found.
@@ -99,8 +99,46 @@ const (
 	configurationV1Uri = "/v1/configuration"
 )
 
+var validTokens map[string]bool
+
+func loadValidTokens(path string) (map[string]bool, error) {
+	def, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer def.Close()
+
+	tokens := map[string]bool{}
+
+	scanner := bufio.NewScanner(def)
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		// Skip empty lines and comments
+		if len(line) == 0 || line[0] == '#' {
+			continue
+		}
+
+		// Get the substring before the '='
+		if eq := strings.IndexRune(line, '='); eq > 0 {
+			// Add the token to the whitelist, converted in our format
+			tokens[convertKeyToRepresentationFormat(line[:eq])] = true
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	return tokens, nil
+}
+
 func main() {
 	r := mux.NewRouter().StrictSlash(true)
+
+	var err error
+	if validTokens, err = loadValidTokens(filepath.Join(os.Getenv("SNAP"), "conf", "default-config")); err != nil {
+		log.Println("Failed to read default configuration:", err)
+	}
 
 	r.HandleFunc(configurationV1Uri, getConfiguration).Methods(http.MethodGet)
 	r.HandleFunc(configurationV1Uri, changeConfiguration).Methods(http.MethodPost)
@@ -135,8 +173,9 @@ func readConfigurationFile(filePath string, config map[string]string) (err error
 		if line := scanner.Text(); len(line) != 0 && line[0] != '#' {
 			// Line must be in the KEY=VALUE format
 			if parts := strings.Split(line, "="); len(parts) == 2 {
+				key := convertKeyToRepresentationFormat(parts[0])
 				value := unescapeTextByShell(parts[1])
-				config[convertKeyToRepresentationFormat(parts[0])] = value
+				config[key] = value
 			}
 		}
 	}
@@ -147,7 +186,7 @@ func readConfigurationFile(filePath string, config map[string]string) (err error
 func readConfiguration(paths []string, config map[string]string) (err error) {
 	for _, location := range paths {
 		if readConfigurationFile(location, config) != nil {
-			return fmt.Errorf("Failed to read configuration file '%s'", location)
+			return fmt.Errorf(`Failed to read configuration file "%s"`, location)
 		}
 	}
 
@@ -156,9 +195,10 @@ func readConfiguration(paths []string, config map[string]string) (err error) {
 
 func getConfiguration(writer http.ResponseWriter, request *http.Request) {
 	config := make(map[string]string)
-	if readConfiguration(configurationPaths, config) == nil {
+	if err := readConfiguration(configurationPaths, config); err == nil {
 		sendHTTPResponse(writer, makeResponse(http.StatusOK, config))
 	} else {
+		log.Println("Read configuration failed:", err)
 		errResponse := makeErrorResponse(http.StatusInternalServerError, "Failed to read configuration data", "internal-error")
 		sendHTTPResponse(writer, errResponse)
 	}
@@ -192,7 +232,7 @@ func unescapeTextByShell(input string) string {
 
 func changeConfiguration(writer http.ResponseWriter, request *http.Request) {
 	path := getConfigOnPath(os.Getenv("SNAP_DATA"))
-	config := make(map[string]string)
+	config := map[string]string{}
 	if readConfiguration([]string{path}, config) != nil {
 		errResponse := makeErrorResponse(http.StatusInternalServerError,
 			"Failed to read existing configuration file", "internal-error")
@@ -200,8 +240,15 @@ func changeConfiguration(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	if validTokens == nil || len(validTokens) == 0 {
+		errResponse := makeErrorResponse(http.StatusInternalServerError, "No default configuration file available", "internal-error")
+		sendHTTPResponse(writer, errResponse)
+		return
+	}
+
 	file, err := os.Create(path)
 	if err != nil {
+		log.Printf("Write to %q failed: %v\n", path, err)
 		errResponse := makeErrorResponse(http.StatusInternalServerError, "Can't write configuration file", "internal-error")
 		sendHTTPResponse(writer, errResponse)
 		return
@@ -210,19 +257,28 @@ func changeConfiguration(writer http.ResponseWriter, request *http.Request) {
 
 	body, err := ioutil.ReadAll(request.Body)
 	if err != nil {
+		log.Println("Failed to process incoming configuration change request:", err)
 		errResponse := makeErrorResponse(http.StatusInternalServerError, "Error reading the request body", "internal-error")
 		sendHTTPResponse(writer, errResponse)
 		return
 	}
 
 	var items map[string]string
-	if json.Unmarshal(body, &items) != nil {
+	if err = json.Unmarshal(body, &items); err != nil {
+		log.Println("Invalid input data", err)
 		errResponse := makeErrorResponse(http.StatusInternalServerError, "Malformed request", "internal-error")
 		sendHTTPResponse(writer, errResponse)
 		return
 	}
 
+	// Add the items in the config, but only if all are in the whitelist
 	for key, value := range items {
+		if _, present := validTokens[key]; !present {
+			log.Println(`Invalid key "` + key + `": ignoring request`)
+			errResponse := makeErrorResponse(http.StatusInternalServerError, `Invalid key "`+key+`"`, "internal-error")
+			sendHTTPResponse(writer, errResponse)
+			return
+		}
 		config[key] = value
 	}
 
