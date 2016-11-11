@@ -34,19 +34,16 @@ apps:
       - network-bind
 
 parts:
-  scripts:
-    plugin: dump
-    source: .
-    snap:
-        - bin/config-internal.sh
-        - bin/ap.sh
-        - bin/helper.sh
-        - conf/default-config
   common:
     plugin: dump
     source: .
     snap:
       - copyright.hostapd
+      - bin/config-internal.sh
+      - bin/ap.sh
+      - bin/helper.sh
+      - conf/default-config
+
   network-utils:
     plugin: nil
     stage-packages:
