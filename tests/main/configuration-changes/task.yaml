@@ -15,4 +15,3 @@ execute: |
     ! wifi-ap.config set wifi.interface
     ! wifi-ap.config set wifi.interfac tun0
     ! wifi-ap.config set wrong.token xyz
-

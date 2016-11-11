@@ -16,19 +16,22 @@
 
 set -e
 
-show_help() {
-    echo "Usage: run-tests.sh [OPTIONS]"
-    echo
-    echo "optional arguments:"
-    echo "  --help        Show this help message and exit"
-    echo "  --channel     Select another channel to build the base image from"
-    echo "  --debug       Enable verbose debugging output"
-}
-
 image_name=ubuntu-core-16.img
 channel=candidate
 spread_opts=
 force_new_image=0
+test_from_channel=0
+
+show_help() {
+    echo "Usage: run-tests.sh [OPTIONS]"
+    echo
+    echo "optional arguments:"
+    echo "  --help                 Show this help message and exit"
+    echo "  --channel              Select another channel to build the base image from (default: $channel)"
+    echo "  --debug                Enable verbose debugging output"
+    echo "  --test-from-channel    Pull network-manager snap from the specified channel instead of building it from source"
+    echo "  --force-new-image      Force generating a new image used for testing"
+}
 
 while [ -n "$1" ]; do
 	case "$1" in
@@ -37,7 +40,11 @@ while [ -n "$1" ]; do
 			exit
 			;;
 		--channel=*)
-			channel="${1#*=}"
+			channel=${1#*=}
+			shift
+			;;
+		--test-from-channel)
+			test_from_channel=1
 			shift
 			;;
 		--debug)
@@ -71,5 +78,7 @@ fi
 
 # We currently only run spread tests but we could do other things
 # here as well like running our snap-lintian tool etc.
-export SNAP_CHANNEL=$channel
-exec spread $spread_opts
+if [ $test_from_channel -eq 1 ] ; then
+	export SNAP_CHANNEL=$channel
+fi
+spread $spread_opts

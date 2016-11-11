@@ -8,27 +8,27 @@ restore: |
     rmmod mac80211_hwsim
 
 execute: |
+    . $TESTSLIB/utilities.sh
+
     # Default configuration will use wlan0 which we just created
-    wifi-ap.config set disabled 0
-    wifi-ap.config set wifi.ssid 'Ubuntu👍'
+    /snap/bin/wifi-ap.config set disabled 0
+    /snap/bin/wifi-ap.config set wifi.ssid 'Ubuntu👍'
 
     systemctl restart snap.wifi-ap.backend
-    while ! systemctl status snap.wifi-ap.backend ; do
-        sleep 1
-    done
+    wait_for_systemd_service snap.wifi-ap.backend
 
     snap install wireless-tools
 
     # Scan for existing WiFi networks and ensure our 'Ubuntu' one is part
     # of the result
     ifconfig wlan1 up
-    wireless-tools.iw dev wlan1 scan | fgrep 'SSID: Ubuntu\xf0\x9f\x91\x8d'
+    /snap/bin/wireless-tools.iw dev wlan1 scan | fgrep 'SSID: Ubuntu\xf0\x9f\x91\x8d'
 
     # There should be only a single network
-    network_count=`wireless-tools.iw dev wlan1 scan | fgrep -c 'SSID: Ubuntu\xf0\x9f\x91\x8d'`
+    network_count=`/snap/bin/wireless-tools.iw dev wlan1 scan | fgrep -c 'SSID: Ubuntu\xf0\x9f\x91\x8d'`
     test $network_count -eq 1
 
     # Verify we can associate with the AP
-    wireless-tools.iw wlan1 connect 'Ubuntu👍'
-    wireless-tools.iw dev wlan1 link | fgrep 'SSID: Ubuntu\xf0\x9f\x91\x8d'
+    /snap/bin/wireless-tools.iw wlan1 connect 'Ubuntu👍'
+    /snap/bin/wireless-tools.iw dev wlan1 link | fgrep 'SSID: Ubuntu\xf0\x9f\x91\x8d'
 
