@@ -18,8 +18,10 @@ done
 # a fresh start for the next test
 rm -rf /var/snap/$SNAP_NAME/common/*
 rm -rf /var/snap/$SNAP_NAME/current/*
-systemctl stop snap.wifi-ap.backend
-systemctl stop snap.wifi-ap.management-service
+# Depending on what the test did both services are not meant to be
+# running here.
+systemctl stop snap.wifi-ap.backend || true
+systemctl stop snap.wifi-ap.management-service || true
 
 # Drop any generated or modified netplan configuration files. The original
 # ones will be restored below.
