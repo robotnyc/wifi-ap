@@ -17,6 +17,7 @@ execute: |
     wait_for_systemd_service snap.wifi-ap.backend
 
     snap install wireless-tools
+    snap connect wireless-tools:network-control core
 
     # Scan for existing WiFi networks and ensure our 'Ubuntu' one is part
     # of the result
