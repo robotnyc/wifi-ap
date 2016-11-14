@@ -10,6 +10,8 @@ restore: |
 execute: |
     . $TESTSLIB/utilities.sh
 
+    wait_for_systemd_service snap.wifi-ap.management-service
+
     # Default configuration will use wlan0 which we just created
     /snap/bin/wifi-ap.config set disabled 0
     /snap/bin/wifi-ap.config set wifi.ssid 'Ubuntu👍'
