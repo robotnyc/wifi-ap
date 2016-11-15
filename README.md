@@ -5,6 +5,41 @@ This snap provided WiFi AP functionality out of the box.
 Documentation is currently available at
 https://docs.google.com/document/d/1vNu3fBqpOkBkjv_Vs9NZyTv50vOEfugrQqgxD0_f0rE/edit#
 
+## Development
+
+To modify any of the included services written in Go you need setup
+your build environment first.
+
+```
+ $ snapcraft clean
+ $ snapcraft
+```
+
+Now we need to export the GOPATH and point it to the directory
+snapcraft already created for us.
+
+```
+ $ export GOPATH=`pwd`/parts/management-service/go
+```
+
+Now you can build the management-service by running
+
+```
+ $ cd cmd/service
+ $ go build -o management-service *.go
+```
+
+If you want to start it afterwards outside of a snap environment you
+need to setup the right environment variables.
+
+```
+ # Needs to be the top source dir which contains the snapcraft.yaml
+ $ export SNAP=`pwd`
+ $ mkdir tmp-data
+ $ export SNAP_DATA=`pwd`/tmp-data
+ $ cmd/service/management-service
+```
+
 ## Running tests
 
 We have a set of spread (https://github.com/snapcore/spread) tests which
