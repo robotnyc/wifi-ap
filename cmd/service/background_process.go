@@ -17,8 +17,10 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
+	"syscall"
 )
 
 type backgroundProcess struct {
@@ -49,6 +51,7 @@ func (p *backgroundProcess) Start() error {
 }
 
 func (p *backgroundProcess) Restart() error {
+	log.Println("Restarting background process")
 	if err := p.Stop(); err != nil {
 		return err
 	}
@@ -59,9 +62,12 @@ func (p *backgroundProcess) Restart() error {
 }
 
 func (p *backgroundProcess) Stop() error {
-	return p.Command.Process.Kill()
+	log.Println("Stopping background process")
+	p.Command.Process.Signal(syscall.SIGTERM)
+	p.Command.Wait()
+	return nil
 }
 
 func (p *backgroundProcess) Running() bool {
-	return p.Command.Process != nil
+	return p.Command.Process != nil && !p.Command.ProcessState.Exited()
 }

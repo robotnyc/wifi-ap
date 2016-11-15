@@ -36,52 +36,6 @@ type S struct{}
 
 var _ = check.Suite(&S{})
 
-// Test the config file path append routine
-func (s *S) TestPath(c *check.C) {
-	c.Assert(getConfigOnPath("/test"), check.Equals, "/test/config")
-}
-
-// List of tokens to be translated
-var cfgKeys = [...][2]string{
-	{"DISABLED", "disabled"},
-	{"WIFI_SSID", "wifi.ssid"},
-	{"WIFI_INTERFACE", "wifi.interface"},
-	{"WIFI_INTERFACE_MODE", "wifi.interface-mode"},
-	{"DHCP_RANGE_START", "dhcp.range-start"},
-	{"MYTOKEN", "mytoken"},
-	{"CFG_TOKEN", "cfg.token"},
-	{"MY_TOKEN$", "my.token$"},
-}
-
-// Test token conversion from internal format
-func (s *S) TestConvertKeyToRepresentationFormat(c *check.C) {
-	for _, st := range cfgKeys {
-		c.Assert(convertKeyToRepresentationFormat(st[0]), check.Equals, st[1])
-	}
-}
-
-// Test token conversion to internal format
-func (s *S) TestConvertKeyToStorageFormat(c *check.C) {
-	for _, st := range cfgKeys {
-		c.Assert(convertKeyToStorageFormat(st[1]), check.Equals, st[0])
-	}
-}
-
-// List of malicious tokens which needs to be escaped
-func (s *S) TestEscapeShell(c *check.C) {
-	cmds := [...][2]string{
-		{"my_ap", "my_ap"},
-		{`my ap`, `"my ap"`},
-		{`my "ap"`, `"my \"ap\""`},
-		{`$(ps ax)`, `"\$(ps ax)"`},
-		{"`ls /`", "\"\\`ls /\\`\""},
-		{`c:\dir`, `"c:\\dir"`},
-	}
-	for _, st := range cmds {
-		c.Assert(escapeTextForShell(st[0]), check.Equals, st[1])
-	}
-}
-
 func (s *S) TestGetConfiguration(c *check.C) {
 	// Check it we get a valid JSON as configuration
 	req, err := http.NewRequest(http.MethodGet, configurationV1Uri, nil)
