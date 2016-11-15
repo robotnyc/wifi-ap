@@ -23,9 +23,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -95,6 +95,7 @@ var configurationPaths = []string{
 	getConfigOnPath(os.Getenv("SNAP_USER_DATA"))}
 
 const (
+	serviceAddress     = "127.0.0.1"
 	servicePort        = 5005
 	configurationV1Uri = "/v1/configuration"
 )
@@ -132,18 +133,32 @@ func loadValidTokens(path string) (map[string]bool, error) {
 	return tokens, nil
 }
 
+var apProcess *backgroundProcess = nil
+
 func main() {
-	r := mux.NewRouter().StrictSlash(true)
+	path := path.Join(os.Getenv("SNAP"), "bin", "ap.sh")
+	apProcess, err := NewBackgroundProcess(path)
+	if err != nil {
+		// If the creation of the process failed we don't shutdown
+		// but will error out whenever the user performs a operation
+		// which would require a valid process instance.
+		log.Println("Failed to create background process for access point instance")
+	}
+
+	if apProcess != nil {
+		apProcess.Start()
+	}
 
 	var err error
 	if validTokens, err = loadValidTokens(filepath.Join(os.Getenv("SNAP"), "conf", "default-config")); err != nil {
 		log.Println("Failed to read default configuration:", err)
 	}
 
+	r := mux.NewRouter().StrictSlash(true)
 	r.HandleFunc(configurationV1Uri, getConfiguration).Methods(http.MethodGet)
 	r.HandleFunc(configurationV1Uri, changeConfiguration).Methods(http.MethodPost)
 
-	log.Fatal(http.ListenAndServe("127.0.0.1:"+strconv.Itoa(servicePort), r))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf("%s:%d", serviceAddress, servicePort), r))
 }
 
 // Convert eg. WIFI_OPERATION_MODE to wifi.operation-mode
@@ -286,6 +301,16 @@ func changeConfiguration(writer http.ResponseWriter, request *http.Request) {
 		key = convertKeyToStorageFormat(key)
 		value = escapeTextForShell(value)
 		file.WriteString(fmt.Sprintf("%s=%s\n", key, value))
+	}
+
+	if apProcess != nil {
+		// Now that we have all configuration changes successfully applied
+		// we can safely restart the service.
+		if err := apProcess.Restart(); err != nil {
+			response := makeErrorResponse(http.StatusInternalServerError, "Failed to restart AP process", "internal-error")
+			sendHTTPResponse(writer, response)
+			return
+		}
 	}
 
 	sendHTTPResponse(writer, makeResponse(http.StatusOK, nil))
