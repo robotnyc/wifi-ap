@@ -106,19 +106,16 @@ func changeConfiguration(c *serviceCommand, writer http.ResponseWriter, request 
 		file.WriteString(fmt.Sprintf("%s=%s\n", key, value))
 	}
 
-	/*
-		fmt.Println("ap", ap)
-		if ap != nil {
-			// Now that we have all configuration changes successfully applied
-			// we can safely restart the service.
-			if err := ap.Restart(); err != nil {
-				log.Println("error: ", err)
-				response := makeErrorResponse(http.StatusInternalServerError, "Failed to restart AP process", "internal-error")
-				sendHTTPResponse(writer, response)
-				return
-			}
+	if c.s.ap != nil {
+		// Now that we have all configuration changes successfully applied
+		// we can safely restart the service.
+		if err := c.s.ap.Restart(); err != nil {
+			log.Println("error: ", err)
+			response := makeErrorResponse(http.StatusInternalServerError, "Failed to restart AP process", "internal-error")
+			sendHTTPResponse(writer, response)
+			return
 		}
-	*/
+	}
 
 	sendHTTPResponse(writer, makeResponse(http.StatusOK, nil))
 }

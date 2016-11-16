@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"path"
 )
 
 const (
@@ -42,6 +43,7 @@ type serviceCommand struct {
 
 type service struct {
 	router *mux.Router
+	ap *backgroundProcess
 }
 
 func (c *serviceCommand) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -77,8 +79,27 @@ func (s *service) addRoutes() {
 	}
 }
 
+func (s *service) setupAccesPoint() error {
+	path := path.Join(os.Getenv("SNAP"), "bin", "ap.sh")
+	ap, err := NewBackgroundProcess(path)
+	if err != nil {
+		return err
+	}
+
+	s.ap = ap
+	err = s.ap.Start()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (s *service) Run() error {
 	s.addRoutes()
+	if err := s.setupAccesPoint(); err != nil {
+		return err
+	}
 
 	var err error
 	if validTokens, err = loadValidTokens(filepath.Join(os.Getenv("SNAP"), "conf", "default-config")); err != nil {

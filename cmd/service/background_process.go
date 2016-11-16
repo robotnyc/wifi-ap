@@ -21,32 +21,41 @@ import (
 	"os"
 	"os/exec"
 	"syscall"
+	"time"
 )
 
 type backgroundProcess struct {
+	Path string
 	Command *exec.Cmd
 }
 
 func NewBackgroundProcess(path string) (*backgroundProcess, error) {
 	p := &backgroundProcess{
+		Path: path,
 		Command: nil,
 	}
 	if p == nil {
 		return nil, fmt.Errorf("Failed to create background process")
 	}
-	p.Command = exec.Command(path)
+
+	return p, nil
+}
+
+func (p *backgroundProcess) Start() error {
+	log.Println("Starting background process")
+
+	p.Command = exec.Command(p.Path)
 	if p.Command == nil {
-		return nil, fmt.Errorf("failed to create background process")
+		return fmt.Errorf("failed to create background process")
 	}
 
 	// Forward output to regular stdout/stderr
 	p.Command.Stdout = os.Stdout
 	p.Command.Stderr = os.Stderr
 
-	return p, nil
-}
+	// Create a new process group
+	p.Command.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 
-func (p *backgroundProcess) Start() error {
 	return p.Command.Start()
 }
 
@@ -63,8 +72,14 @@ func (p *backgroundProcess) Restart() error {
 
 func (p *backgroundProcess) Stop() error {
 	log.Println("Stopping background process")
+	timer := time.AfterFunc(3 * time.Second, func() {
+		p.Command.Process.Kill()
+	})
 	p.Command.Process.Signal(syscall.SIGTERM)
 	p.Command.Wait()
+	timer.Stop()
+	log.Println("process stopped: ", p.Command.ProcessState)
+	p.Command = nil
 	return nil
 }
 
