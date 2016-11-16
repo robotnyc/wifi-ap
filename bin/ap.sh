@@ -39,6 +39,10 @@ if ! ifconfig $WIFI_INTERFACE ; then
 fi
 
 cleanup_on_exit() {
+	read HOSTAPD_PID <$SNAP_DATA/hostapd.pid
+	kill -TERM $HOSTAPD_PID || true
+	wait $HOSTAPD_PID
+
 	read DNSMASQ_PID <$SNAP_DATA/dnsmasq.pid
 	# If dnsmasq is already gone don't error out here
 	kill -TERM $DNSMASQ_PID || true
@@ -139,7 +143,13 @@ if [ $SHARE_DISABLED -eq 0 ] ; then
 fi
 
 generate_dnsmasq_config $SNAP_DATA/dnsmasq.conf
-$SNAP/bin/dnsmasq -k -C $SNAP_DATA/dnsmasq.conf -l $SNAP_DATA/dnsmasq.leases -x $SNAP_DATA/dnsmasq.pid &
+$SNAP/bin/dnsmasq \
+	-k \
+	-C $SNAP_DATA/dnsmasq.conf \
+	-l $SNAP_DATA/dnsmasq.leases \
+	-x $SNAP_DATA/dnsmasq.pid \
+	-u root -g root \
+	&
 
 driver=$WIFI_HOSTAPD_DRIVER
 if [ "$driver" = "rtl8188" ] ; then
@@ -218,7 +228,13 @@ case "$WIFI_HOSTAPD_DRIVER" in
 		;;
 esac
 
+trap cleanup_on_exit TERM
+
 # Startup hostapd with the configuration we've put in place
-$hostapd $EXTRA_ARGS $SNAP_DATA/hostapd.conf
+$hostapd $EXTRA_ARGS $SNAP_DATA/hostapd.conf &
+hostapd_pid=$!
+echo $hostapd_pid > $SNAP_DATA/hostapd.pid
+wait $hostapd_pid
+
 cleanup_on_exit
 exit 0
