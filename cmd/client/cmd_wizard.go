@@ -20,14 +20,23 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
 )
+
+type wizardStep func(map[string]string, *bufio.Reader, bool) error
+
+// Go stores both IPv4 and IPv6 as [16]byte
+// with IPv4 addresses stored in the end of the buffer
+// in bytes 13..16
+const ipv4Offset = net.IPv6len - net.IPv4len
+
+var defaultIp = net.IPv4(10, 0, 60, 1)
 
 // Utility function to read input and strip the trailing \n
 func readUserInput(reader *bufio.Reader) string {
@@ -41,15 +50,15 @@ func readUserInput(reader *bufio.Reader) string {
 // Helper function to list network interfaces
 func findExistingInterfaces(wifi bool) (wifis []string) {
 	// Use sysfs to get interfaces list
-	const sysNetPath = "/sys/class/net/"
-	ifaces, err := ioutil.ReadDir(sysNetPath)
+	const sysNetPath = "/sys/class/net"
+	ifaces, err := net.Interfaces()
 	wifis = []string{}
 	if err == nil {
 		for _, iface := range ifaces {
-			if iface.Name() != "lo" {
+			if iface.Flags&net.FlagLoopback == 0 {
 				// The "wireless" subdirectory exists only for wireless interfaces
-				if _, err := os.Stat(sysNetPath + iface.Name() + "/wireless"); os.IsNotExist(err) != wifi {
-					wifis = append(wifis, iface.Name())
+				if _, err := os.Stat(filepath.Join(sysNetPath, iface.Name, "wireless")); os.IsNotExist(err) != wifi {
+					wifis = append(wifis, iface.Name)
 				}
 			}
 		}
@@ -58,11 +67,39 @@ func findExistingInterfaces(wifi bool) (wifis []string) {
 	return
 }
 
-type wizardStep func(map[string]string, *bufio.Reader) error
+func findFreeSubnet(startIp net.IP) (net.IP, error) {
+	curIp := startIp
+
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return nil, err
+	}
+
+	// Start from startIp and increment the third octect every time
+	// until we found an IP which isn't assigned to any interface
+	for found := false; !found; {
+		// Cycle through all the assigned addresses
+		for _, addr := range addrs {
+			found = true
+			_, subnet, _ := net.ParseCIDR(addr.String())
+			// If busy, increment the third octect and retry
+			if subnet.Contains(curIp) {
+				found = false
+				if curIp[ipv4Offset+2] == 255 {
+					return nil, fmt.Errorf("No free netmask found")
+				}
+				curIp[ipv4Offset+2]++
+				break
+			}
+		}
+	}
+
+	return curIp, nil
+}
 
 var allSteps = [...]wizardStep{
 	// determine the WiFi interface
-	func(configuration map[string]string, reader *bufio.Reader) error {
+	func(configuration map[string]string, reader *bufio.Reader, nonInteractive bool) error {
 		ifaces := findExistingInterfaces(true)
 		if len(ifaces) == 0 {
 			return fmt.Errorf("There are no valid wireless network interfaces available")
@@ -70,12 +107,19 @@ var allSteps = [...]wizardStep{
 			fmt.Println("Automatically selected only available wireless network interface " + ifaces[0])
 			return nil
 		}
+
+		if nonInteractive {
+			fmt.Println("Selecting interface", ifaces[0])
+			configuration["wifi.interface"] = ifaces[0]
+			return nil
+		}
+
 		fmt.Print("Which wireless interface you want to use? ")
 		ifacesVerb := "are"
 		if len(ifaces) == 1 {
 			ifacesVerb = "is"
 		}
-		fmt.Printf("Available %s %s:", ifacesVerb, strings.Join(ifaces, ", "))
+		fmt.Printf("Available %s %s: ", ifacesVerb, strings.Join(ifaces, ", "))
 		iface := readUserInput(reader)
 		if re := regexp.MustCompile("^[[:alnum:]]+$"); !re.MatchString(iface) {
 			return fmt.Errorf("Invalid interface name '%s' given", iface)
@@ -86,7 +130,12 @@ var allSteps = [...]wizardStep{
 	},
 
 	// Ask for WiFi ESSID
-	func(configuration map[string]string, reader *bufio.Reader) error {
+	func(configuration map[string]string, reader *bufio.Reader, nonInteractive bool) error {
+		if nonInteractive {
+			configuration["wifi.ssid"] = "Ubuntu"
+			return nil
+		}
+
 		fmt.Print("Which SSID you want to use for the access point: ")
 		iface := readUserInput(reader)
 		if len(iface) == 0 || len(iface) > 31 {
@@ -98,7 +147,12 @@ var allSteps = [...]wizardStep{
 	},
 
 	// Select WiFi encryption type
-	func(configuration map[string]string, reader *bufio.Reader) error {
+	func(configuration map[string]string, reader *bufio.Reader, nonInteractive bool) error {
+		if nonInteractive {
+			configuration["wifi.security"] = "open"
+			return nil
+		}
+
 		fmt.Print("Do you want to protect your network with a WPA2 password instead of staying open for everyone? (y/n) ")
 		switch resp := strings.ToLower(readUserInput(reader)); resp {
 		case "y":
@@ -113,7 +167,7 @@ var allSteps = [...]wizardStep{
 	},
 
 	// If WPA2 is set, ask for valid password
-	func(configuration map[string]string, reader *bufio.Reader) error {
+	func(configuration map[string]string, reader *bufio.Reader, nonInteractive bool) error {
 		if configuration["wifi.security"] == "open" {
 			return nil
 		}
@@ -128,7 +182,20 @@ var allSteps = [...]wizardStep{
 	},
 
 	// Configure WiFi AP IP address
-	func(configuration map[string]string, reader *bufio.Reader) error {
+	func(configuration map[string]string, reader *bufio.Reader, nonInteractive bool) error {
+		if nonInteractive {
+			wifiIp, err := findFreeSubnet(defaultIp)
+			if err != nil {
+				return err
+			}
+
+			fmt.Println("AccessPoint IP set to", wifiIp.String())
+
+			configuration["wifi.address"] = wifiIp.String()
+			configuration["wifi.netmask"] = "255.255.255.0"
+			return nil
+		}
+
 		fmt.Print("Insert the Access Point IP address: ")
 		inputIp := readUserInput(reader)
 		ipv4 := net.ParseIP(inputIp)
@@ -143,21 +210,33 @@ var allSteps = [...]wizardStep{
 		}
 
 		configuration["wifi.address"] = inputIp
-
-		nmask := ipv4.DefaultMask()
-		configuration["wifi.netmask"] = fmt.Sprintf("%d.%d.%d.%d", nmask[0], nmask[1], nmask[2], nmask[3])
+		configuration["wifi.netmask"] = ipv4.DefaultMask().String()
 
 		return nil
 	},
 
 	// Configure the DHCP pool
-	func(configuration map[string]string, reader *bufio.Reader) error {
+	func(configuration map[string]string, reader *bufio.Reader, nonInteractive bool) error {
+		if nonInteractive {
+			wifiIp := net.ParseIP(configuration["wifi.address"])
+
+			// Set the DCHP in the range 2..199 with 198 total hosts
+			// leave about 50 hosts outside the pool for static addresses
+			// wifiIp[ipv4Offset + 3] is the last octect of the IP address
+			wifiIp[ipv4Offset+3] = 2
+			configuration["dhcp.range-start"] = wifiIp.String()
+			wifiIp[ipv4Offset+3] = 199
+			configuration["dhcp.range-stop"] = wifiIp.String()
+
+			return nil
+		}
+
 		var maxpoolsize byte
 		ipv4 := net.ParseIP(configuration["wifi.address"])
-		if ipv4[15] <= 128 {
-			maxpoolsize = 254 - ipv4[15]
+		if ipv4[ipv4Offset+3] <= 128 {
+			maxpoolsize = 254 - ipv4[ipv4Offset+3]
 		} else {
-			maxpoolsize = ipv4[15] - 1
+			maxpoolsize = ipv4[ipv4Offset+3] - 1
 		}
 
 		fmt.Printf("How many host do you want your DHCP pool to hold to? (1-%d) ", maxpoolsize)
@@ -172,19 +251,28 @@ var allSteps = [...]wizardStep{
 
 		nhosts := byte(inputhost)
 		// Allocate the pool in the bigger half, trying to avoid overlap with access point IP
-		if ipv4[15] <= 128 {
-			configuration["dhcp.range-start"] = fmt.Sprintf("%d.%d.%d.%d", ipv4[12], ipv4[13], ipv4[14], ipv4[15]+1)
-			configuration["dhcp.range-stop"] = fmt.Sprintf("%d.%d.%d.%d", ipv4[12], ipv4[13], ipv4[14], ipv4[15]+nhosts)
+		if octect3 := ipv4[ipv4Offset+3]; octect3 <= 128 {
+			ipv4[ipv4Offset+3] = octect3 + 1
+			configuration["dhcp.range-start"] = ipv4.String()
+			ipv4[ipv4Offset+3] = octect3 + nhosts
+			configuration["dhcp.range-stop"] = ipv4.String()
 		} else {
-			configuration["dhcp.range-start"] = fmt.Sprintf("%d.%d.%d.%d", ipv4[12], ipv4[13], ipv4[14], ipv4[15]-nhosts)
-			configuration["dhcp.range-stop"] = fmt.Sprintf("%d.%d.%d.%d", ipv4[12], ipv4[13], ipv4[14], ipv4[15]-1)
+			ipv4[ipv4Offset+3] = octect3 - nhosts
+			configuration["dhcp.range-start"] = ipv4.String()
+			ipv4[ipv4Offset+3] = octect3 - 1
+			configuration["dhcp.range-stop"] = ipv4.String()
 		}
 
 		return nil
 	},
 
 	// Enable or disable connection sharing
-	func(configuration map[string]string, reader *bufio.Reader) error {
+	func(configuration map[string]string, reader *bufio.Reader, nonInteractive bool) error {
+		if nonInteractive {
+			configuration["share.disabled"] = "0"
+			return nil
+		}
+
 		fmt.Print("Do you want to enable connection sharing? (y/n) ")
 		switch resp := strings.ToLower(readUserInput(reader)); resp {
 		case "y":
@@ -199,10 +287,39 @@ var allSteps = [...]wizardStep{
 	},
 
 	// Select the wired interface to share
-	func(configuration map[string]string, reader *bufio.Reader) error {
+	func(configuration map[string]string, reader *bufio.Reader, nonInteractive bool) error {
+		if nonInteractive {
+			configuration["share.disabled"] = "1"
+
+			procNetRoute, err := os.Open("/proc/net/route")
+			if err != nil {
+				return err
+			}
+			defer procNetRoute.Close()
+
+			scanner := bufio.NewScanner(procNetRoute)
+			// Skip the first line with table header
+			scanner.Text()
+			for scanner.Scan() {
+				route := strings.Fields(scanner.Text())
+				// A /proc/net/route line is in the form: iface destination gateway ...
+				// eg.
+				// eth1 00000000 0155A8C0 ...
+				// look for a 0 destination (0.0.0.0) which is our default route
+				if len(route) > 2 && route[1] == "00000000" {
+					fmt.Println("Selecting", route[0], "for connection sharing")
+					configuration["share.disabled"] = "0"
+					configuration["share.network-interface"] = route[0]
+				}
+			}
+
+			return nil
+		}
+
 		if configuration["share.disabled"] == "1" {
 			return nil
 		}
+
 		ifaces := findExistingInterfaces(false)
 		if len(ifaces) == 0 {
 			fmt.Println("No network interface available which's connection can be shared. Disabling connection sharing.")
@@ -224,7 +341,12 @@ var allSteps = [...]wizardStep{
 		return nil
 	},
 
-	func (configuration map[string]string, reader *bufio.Reader) error {
+	func(configuration map[string]string, reader *bufio.Reader, nonInteractive bool) error {
+		if nonInteractive {
+			configuration["disabled"] = "0"
+			return nil
+		}
+
 		fmt.Print("Do you want to enable the AP now? (y/n) ")
 		switch resp := strings.ToLower(readUserInput(reader)); resp {
 		case "y":
@@ -262,7 +384,9 @@ func applyConfiguration(configuration map[string]string) error {
 	}
 }
 
-type wizardCommand struct{}
+type wizardCommand struct {
+	Auto bool `long:"auto" description:"Automatically configure the AP"`
+}
 
 func (cmd *wizardCommand) Execute(args []string) error {
 	// Setup some sane default values, we don't ask the user for everything
@@ -272,9 +396,12 @@ func (cmd *wizardCommand) Execute(args []string) error {
 
 	for _, step := range allSteps {
 		for {
-			if err := step(configuration, reader); err != nil {
+			if err := step(configuration, reader, cmd.Auto); err != nil {
+				if cmd.Auto {
+					return err
+				}
 				fmt.Println("Error: ", err)
-				fmt.Print("You want to try again? (y/n) ")
+				fmt.Print("Do you want to try again? (y/n) ")
 				answer := readUserInput(reader)
 				if strings.ToLower(answer) != "y" {
 					return err

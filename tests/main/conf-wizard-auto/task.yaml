@@ -1,0 +1,31 @@
+summary: Verify that the automatic wizard works
+
+prepare: |
+    # Simulate two WiFi radio network interfaces
+    modprobe mac80211_hwsim radios=2
+
+restore: |
+    rmmod mac80211_hwsim
+
+execute: |
+    # Start the automatic wizard
+    /snap/bin/wifi-ap.setup-wizard wizard --auto
+
+    # Check that we get good default values
+    test "$(/snap/bin/wifi-ap.config get disabled)" = 0
+
+    test "$(/snap/bin/wifi-ap.config get wifi.interface)" = wlan0
+    test "$(/snap/bin/wifi-ap.config get wifi.security)" = open
+    test "$(/snap/bin/wifi-ap.config get wifi.ssid)" = Ubuntu
+    test "$(/snap/bin/wifi-ap.config get wifi.address)" = 10.0.60.1
+
+    test "$(/snap/bin/wifi-ap.config get dhcp.range-start)" = 10.0.60.2
+    test "$(/snap/bin/wifi-ap.config get dhcp.range-stop)" = 10.0.60.199
+
+    default_route=$(ip route |awk '/default/{print$5}')
+    if [ -n "$default_route" ]; then
+        test "$(/snap/bin/wifi-ap.config get share.disabled)" = 0
+        test "$(/snap/bin/wifi-ap.config get share.network-interface)" = "$default_route"
+    else
+        test "$(/snap/bin/wifi-ap.config get share.disabled)" = 1
+    fi
