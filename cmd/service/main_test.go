@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -104,7 +105,41 @@ func (s *S) TestGetConfiguration(c *check.C) {
 	c.Assert(resp.Type, check.Equals, "sync")
 }
 
-func (s *S) TestChangeConfiguration(c *check.C) {
+func (s *S) TestNoDefaultConfiguration(c *check.C) {
+	oldsnap := os.Getenv("SNAP")
+	os.Setenv("SNAP", "/nodir")
+	os.Setenv("SNAP_DATA", "/tmp")
+
+	req, err := http.NewRequest(http.MethodPost, configurationV1Uri, nil)
+	c.Assert(err, check.IsNil)
+
+	rec := httptest.NewRecorder()
+
+	validTokens = nil
+
+	changeConfiguration(rec, req)
+
+	c.Assert(rec.Code, check.Equals, http.StatusInternalServerError)
+
+	body, err := ioutil.ReadAll(rec.Body)
+	c.Assert(err, check.IsNil)
+
+	// Parse the returned JSON
+	var resp serviceResponse
+	err = json.Unmarshal(body, &resp)
+	c.Assert(err, check.IsNil)
+
+	// Check for 500 status code and other error fields
+	c.Assert(resp.Status, check.Equals, http.StatusText(http.StatusInternalServerError))
+	c.Assert(resp.StatusCode, check.Equals, http.StatusInternalServerError)
+	c.Assert(resp.Type, check.Equals, "error")
+	c.Assert(resp.Result["kind"], check.Equals, "internal-error")
+	c.Assert(resp.Result["message"], check.Equals, "No default configuration file available")
+
+	os.Setenv("SNAP", oldsnap)
+}
+
+func (s *S) TestWriteError(c *check.C) {
 	// Test a non writable path:
 	os.Setenv("SNAP_DATA", "/nodir")
 
@@ -112,6 +147,10 @@ func (s *S) TestChangeConfiguration(c *check.C) {
 	c.Assert(err, check.IsNil)
 
 	rec := httptest.NewRecorder()
+
+	validTokens, err = loadValidTokens(filepath.Join(os.Getenv("SNAP"), "/conf/default-config"))
+	c.Assert(validTokens, check.NotNil)
+	c.Assert(err, check.IsNil)
 
 	changeConfiguration(rec, req)
 
@@ -131,23 +170,25 @@ func (s *S) TestChangeConfiguration(c *check.C) {
 	c.Assert(resp.Type, check.Equals, "error")
 	c.Assert(resp.Result["kind"], check.Equals, "internal-error")
 	c.Assert(resp.Result["message"], check.Equals, "Can't write configuration file")
+}
 
+func (s *S) TestInvalidJSON(c *check.C) {
 	// Test an invalid JSON
 	os.Setenv("SNAP_DATA", "/tmp")
-	req, err = http.NewRequest(http.MethodPost, configurationV1Uri, strings.NewReader("not a JSON content"))
+	req, err := http.NewRequest(http.MethodPost, configurationV1Uri, strings.NewReader("not a JSON content"))
 	c.Assert(err, check.IsNil)
 
-	rec = httptest.NewRecorder()
+	rec := httptest.NewRecorder()
 
 	changeConfiguration(rec, req)
 
 	c.Assert(rec.Code, check.Equals, http.StatusInternalServerError)
 
-	body, err = ioutil.ReadAll(rec.Body)
+	body, err := ioutil.ReadAll(rec.Body)
 	c.Assert(err, check.IsNil)
 
 	// Parse the returned JSON
-	resp = serviceResponse{}
+	resp := serviceResponse{}
 	err = json.Unmarshal(body, &resp)
 	c.Assert(err, check.IsNil)
 
@@ -157,9 +198,52 @@ func (s *S) TestChangeConfiguration(c *check.C) {
 	c.Assert(resp.Type, check.Equals, "error")
 	c.Assert(resp.Result["kind"], check.Equals, "internal-error")
 	c.Assert(resp.Result["message"], check.Equals, "Malformed request")
+}
 
+func (s *S) TestInvalidToken(c *check.C) {
 	// Test a succesful configuration set
+	// Values to be used in the config
+	values := map[string]string{
+		"wifi.security":            "wpa2",
+		"wifi.ssid":                "UbuntuAP",
+		"wifi.security-passphrase": "12345678",
+		"bad.token":                "xyz",
+	}
 
+	// Convert the map into JSON
+	args, err := json.Marshal(values)
+	c.Assert(err, check.IsNil)
+
+	req, err := http.NewRequest(http.MethodPost, configurationV1Uri, bytes.NewReader(args))
+	c.Assert(err, check.IsNil)
+
+	rec := httptest.NewRecorder()
+
+	validTokens, err = loadValidTokens(filepath.Join(os.Getenv("SNAP"), "/conf/default-config"))
+	c.Assert(validTokens, check.NotNil)
+	c.Assert(err, check.IsNil)
+
+	// Do the request
+	changeConfiguration(rec, req)
+
+	c.Assert(rec.Code, check.Equals, http.StatusInternalServerError)
+
+	// Read the result JSON
+	body, err := ioutil.ReadAll(rec.Body)
+	c.Assert(err, check.IsNil)
+
+	// Parse the returned JSON
+	resp := serviceResponse{}
+	err = json.Unmarshal(body, &resp)
+	c.Assert(err, check.IsNil)
+
+	// Check for 500 status code and other succesful fields
+	c.Assert(resp.Status, check.Equals, http.StatusText(http.StatusInternalServerError))
+	c.Assert(resp.StatusCode, check.Equals, http.StatusInternalServerError)
+	c.Assert(resp.Type, check.Equals, "error")
+}
+
+func (s *S) TestChangeConfiguration(c *check.C) {
 	// Values to be used in the config
 	values := map[string]string{
 		"wifi.security":            "wpa2",
@@ -171,10 +255,14 @@ func (s *S) TestChangeConfiguration(c *check.C) {
 	args, err := json.Marshal(values)
 	c.Assert(err, check.IsNil)
 
-	req, err = http.NewRequest(http.MethodPost, configurationV1Uri, bytes.NewReader(args))
+	req, err := http.NewRequest(http.MethodPost, configurationV1Uri, bytes.NewReader(args))
 	c.Assert(err, check.IsNil)
 
-	rec = httptest.NewRecorder()
+	rec := httptest.NewRecorder()
+
+	validTokens, err = loadValidTokens(filepath.Join(os.Getenv("SNAP"), "/conf/default-config"))
+	c.Assert(validTokens, check.NotNil)
+	c.Assert(err, check.IsNil)
 
 	// Do the request
 	changeConfiguration(rec, req)
@@ -182,11 +270,11 @@ func (s *S) TestChangeConfiguration(c *check.C) {
 	c.Assert(rec.Code, check.Equals, http.StatusOK)
 
 	// Read the result JSON
-	body, err = ioutil.ReadAll(rec.Body)
+	body, err := ioutil.ReadAll(rec.Body)
 	c.Assert(err, check.IsNil)
 
 	// Parse the returned JSON
-	resp = serviceResponse{}
+	resp := serviceResponse{}
 	err = json.Unmarshal(body, &resp)
 	c.Assert(err, check.IsNil)
 
@@ -205,6 +293,6 @@ func (s *S) TestChangeConfiguration(c *check.C) {
 			check.Equals, true)
 	}
 
-	// don't leave garbage in /tmp
+	// Don't leave garbage in /tmp
 	os.Remove(getConfigOnPath(os.Getenv("SNAP_DATA")))
 }

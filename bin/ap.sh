@@ -162,7 +162,6 @@ hw_mode=$WIFI_OPERATION_MODE
 # The wmm_* options are needed to enable AMPDU
 # and get decent 802.11n throughput
 wmm_enabled=1
-wmm_enabled=1
 wmm_ac_bk_cwmin=4
 wmm_ac_bk_cwmax=10
 wmm_ac_bk_aifs=7

@@ -11,6 +11,8 @@ execute: |
     test `wifi-ap.config get disabled` -eq 0
     test "`wifi-ap.config get wifi.interface`" = "wlan1"
 
-    # FIXME: once we deny invalid configuration items we need to check
-    # for them here as well
+    ! wifi-ap.config set
+    ! wifi-ap.config set wifi.interface
+    ! wifi-ap.config set wifi.interfac tun0
+    ! wifi-ap.config set wrong.token xyz
 
