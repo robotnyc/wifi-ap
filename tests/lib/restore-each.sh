@@ -1,6 +1,7 @@
 #!/bin/bash
 
 . $TESTSLIB/snap-names.sh
+. $TESTSLIB/utilities.sh
 
 # Remove all snaps not being the core, gadget, kernel or snap we're testing
 for snap in /snap/*; do
@@ -41,3 +42,5 @@ netplan apply
 # Start services again now that the system is restored
 systemctl start snap.wifi-ap.backend
 systemctl start snap.wifi-ap.management-service
+wait_for_systemd_service snap.wifi-ap.backend
+wait_for_systemd_service snap.wifi-ap.management-service
