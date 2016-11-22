@@ -40,5 +40,4 @@ netplan apply
 
 # Start services again now that the system is restored
 systemctl start snap.wifi-ap.management-service
-wait_for_systemd_service snap.wifi-ap.backend
 wait_for_systemd_service snap.wifi-ap.management-service
