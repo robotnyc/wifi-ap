@@ -31,8 +31,8 @@ var api = []*serviceCommand{
 var (
 	configurationCmd = &serviceCommand{
 		Path: "/v1/configuration",
-		GET:  getConfiguration,
-		POST: changeConfiguration,
+		GET: getConfiguration,
+		POST: postConfiguration,
 	}
 	validTokens map[string]bool
 )
@@ -42,19 +42,18 @@ func getConfiguration(c *serviceCommand, writer http.ResponseWriter, request *ht
 	if err := readConfiguration(configurationPaths, config); err == nil {
 		sendHTTPResponse(writer, makeResponse(http.StatusOK, config))
 	} else {
-		log.Println("Read configuration failed:", err)
-		errResponse := makeErrorResponse(http.StatusInternalServerError, "Failed to read configuration data", "internal-error")
-		sendHTTPResponse(writer, errResponse)
+		resp := makeErrorResponse(http.StatusInternalServerError, "Failed to read configuration data", "internal-error")
+		sendHTTPResponse(writer, resp)
 	}
 }
 
-func changeConfiguration(c *serviceCommand, writer http.ResponseWriter, request *http.Request) {
+func postConfiguration(c *serviceCommand, writer http.ResponseWriter, request *http.Request) {
 	path := getConfigOnPath(os.Getenv("SNAP_DATA"))
 	config := map[string]string{}
 	if readConfiguration([]string{path}, config) != nil {
-		errResponse := makeErrorResponse(http.StatusInternalServerError,
+		resp := makeErrorResponse(http.StatusInternalServerError,
 			"Failed to read existing configuration file", "internal-error")
-		sendHTTPResponse(writer, errResponse)
+		sendHTTPResponse(writer, resp)
 		return
 	}
 
@@ -66,26 +65,23 @@ func changeConfiguration(c *serviceCommand, writer http.ResponseWriter, request 
 
 	file, err := os.Create(path)
 	if err != nil {
-		log.Printf("Write to %q failed: %v\n", path, err)
-		errResponse := makeErrorResponse(http.StatusInternalServerError, "Can't write configuration file", "internal-error")
-		sendHTTPResponse(writer, errResponse)
+		resp := makeErrorResponse(http.StatusInternalServerError, "Can't write configuration file", "internal-error")
+		sendHTTPResponse(writer, resp)
 		return
 	}
 	defer file.Close()
 
 	body, err := ioutil.ReadAll(request.Body)
 	if err != nil {
-		log.Println("Failed to process incoming configuration change request:", err)
-		errResponse := makeErrorResponse(http.StatusInternalServerError, "Error reading the request body", "internal-error")
-		sendHTTPResponse(writer, errResponse)
+		resp := makeErrorResponse(http.StatusInternalServerError, "Error reading the request body", "internal-error")
+		sendHTTPResponse(writer, resp)
 		return
 	}
 
 	var items map[string]string
 	if err = json.Unmarshal(body, &items); err != nil {
-		log.Println("Invalid input data", err)
-		errResponse := makeErrorResponse(http.StatusInternalServerError, "Malformed request", "internal-error")
-		sendHTTPResponse(writer, errResponse)
+		resp := makeErrorResponse(http.StatusInternalServerError, "Malformed request", "internal-error")
+		sendHTTPResponse(writer, resp)
 		return
 	}
 
@@ -111,8 +107,8 @@ func changeConfiguration(c *serviceCommand, writer http.ResponseWriter, request 
 		// we can safely restart the service.
 		if err := c.s.ap.Restart(); err != nil {
 			log.Println("error: ", err)
-			response := makeErrorResponse(http.StatusInternalServerError, "Failed to restart AP process", "internal-error")
-			sendHTTPResponse(writer, response)
+			resp := makeErrorResponse(http.StatusInternalServerError, "Failed to restart AP process", "internal-error")
+			sendHTTPResponse(writer, resp)
 			return
 		}
 	}

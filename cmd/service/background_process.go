@@ -17,7 +17,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"syscall"
@@ -42,8 +41,6 @@ func NewBackgroundProcess(path string) (*backgroundProcess, error) {
 }
 
 func (p *backgroundProcess) Start() error {
-	log.Println("Starting background process")
-
 	p.Command = exec.Command(p.Path)
 	if p.Command == nil {
 		return fmt.Errorf("failed to create background process")
@@ -60,7 +57,6 @@ func (p *backgroundProcess) Start() error {
 }
 
 func (p *backgroundProcess) Restart() error {
-	log.Println("Restarting background process")
 	if err := p.Stop(); err != nil {
 		return err
 	}
@@ -71,18 +67,16 @@ func (p *backgroundProcess) Restart() error {
 }
 
 func (p *backgroundProcess) Stop() error {
-	log.Println("Stopping background process")
 	timer := time.AfterFunc(3 * time.Second, func() {
 		p.Command.Process.Kill()
 	})
 	p.Command.Process.Signal(syscall.SIGTERM)
 	p.Command.Wait()
 	timer.Stop()
-	log.Println("process stopped: ", p.Command.ProcessState)
 	p.Command = nil
 	return nil
 }
 
 func (p *backgroundProcess) Running() bool {
-	return p.Command.Process != nil && !p.Command.ProcessState.Exited()
+	return p.Command != nil
 }
