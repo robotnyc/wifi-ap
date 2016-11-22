@@ -18,3 +18,15 @@ package main
 import (
 	"gopkg.in/check.v1"
 )
+
+func (s *S) TestBackgroundProcessStartStop(c *check.C) {
+	p, err := NewBackgroundProcess("/bin/true")
+	c.Assert(err, check.IsNil)
+	c.Assert(p.Running(), check.Equals, false)
+	c.Assert(p.Start(), check.IsNil)
+	c.Assert(p.Running(), check.Equals, true)
+	c.Assert(p.Stop(), check.IsNil)
+	c.Assert(p.Running(), check.Equals, false)
+	c.Assert(p.Restart(), check.IsNil)
+	c.Assert(p.Running(), check.Equals, true)
+}

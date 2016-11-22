@@ -23,15 +23,24 @@ import (
 	"time"
 )
 
-type backgroundProcess struct {
-	Path string
-	Command *exec.Cmd
+type backgroundProcessImpl struct {
+	path string
+	command *exec.Cmd
 }
 
-func NewBackgroundProcess(path string) (*backgroundProcess, error) {
-	p := &backgroundProcess{
-		Path: path,
-		Command: nil,
+// BackgroundProcess provides control over a process running in the
+// background.
+type BackgroundProcess interface {
+	Start() error
+	Stop() error
+	Restart() error
+	Running() bool
+}
+
+func NewBackgroundProcess(path string) (BackgroundProcess, error) {
+	p := &backgroundProcessImpl{
+		path: path,
+		command: nil,
 	}
 	if p == nil {
 		return nil, fmt.Errorf("Failed to create background process")
@@ -40,23 +49,28 @@ func NewBackgroundProcess(path string) (*backgroundProcess, error) {
 	return p, nil
 }
 
-func (p *backgroundProcess) Start() error {
-	p.Command = exec.Command(p.Path)
-	if p.Command == nil {
+func (p *backgroundProcessImpl) Start() error {
+	p.command = exec.Command(p.path)
+	if p.command == nil {
 		return fmt.Errorf("failed to create background process")
 	}
 
 	// Forward output to regular stdout/stderr
-	p.Command.Stdout = os.Stdout
-	p.Command.Stderr = os.Stderr
+	p.command.Stdout = os.Stdout
+	p.command.Stderr = os.Stderr
 
 	// Create a new process group
-	p.Command.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	p.command.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 
-	return p.Command.Start()
+	err := p.command.Start()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (p *backgroundProcess) Restart() error {
+func (p *backgroundProcessImpl) Restart() error {
 	if err := p.Stop(); err != nil {
 		return err
 	}
@@ -66,17 +80,20 @@ func (p *backgroundProcess) Restart() error {
 	return nil
 }
 
-func (p *backgroundProcess) Stop() error {
+func (p *backgroundProcessImpl) Stop() error {
+	if p.command == nil {
+		return nil
+	}
 	timer := time.AfterFunc(3 * time.Second, func() {
-		p.Command.Process.Kill()
+		p.command.Process.Kill()
 	})
-	p.Command.Process.Signal(syscall.SIGTERM)
-	p.Command.Wait()
+	p.command.Process.Signal(syscall.SIGTERM)
+	p.command.Wait()
 	timer.Stop()
-	p.Command = nil
+	p.command = nil
 	return nil
 }
 
-func (p *backgroundProcess) Running() bool {
-	return p.Command != nil
+func (p *backgroundProcessImpl) Running() bool {
+	return p.command != nil
 }

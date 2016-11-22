@@ -16,24 +16,8 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
-	"io/ioutil"
-	"net/http"
-	"net/http/httptest"
-	"os"
-	"strings"
-	"testing"
-
 	"gopkg.in/check.v1"
 )
-
-// gopkg.in/check.v1 stuff
-func Test(t *testing.T) { check.TestingT(t) }
-
-type S struct{}
-
-var _ = check.Suite(&S{})
 
 // Test the config file path append routine
 func (s *S) TestPath(c *check.C) {

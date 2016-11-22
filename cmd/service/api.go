@@ -93,7 +93,6 @@ func postConfiguration(c *serviceCommand, writer http.ResponseWriter, request *h
 	// Add the items in the config, but only if all are in the whitelist
 	for key, value := range items {
 		if _, present := validTokens[key]; !present {
-			log.Println(`Invalid key "` + key + `": ignoring request`)
 			errResponse := makeErrorResponse(http.StatusInternalServerError, `Invalid key "`+key+`"`, "internal-error")
 			sendHTTPResponse(writer, errResponse)
 			return
@@ -130,9 +129,9 @@ func restartAccessPoint(c *serviceCommand) error {
 func getStatus(c *serviceCommand, writer http.ResponseWriter, request *http.Request) {
 	status := make(map[string]string)
 
-	status["ap-active"] = "0"
+	status["ap.active"] = "0"
 	if c.s.ap != nil && c.s.ap.Running() {
-		status["ap-active"] = "1"
+		status["ap.active"] = "1"
 	}
 
 	sendHTTPResponse(writer, makeResponse(http.StatusOK, status))

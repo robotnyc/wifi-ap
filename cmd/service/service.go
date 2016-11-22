@@ -43,7 +43,7 @@ type serviceCommand struct {
 
 type service struct {
 	router *mux.Router
-	ap *backgroundProcess
+	ap BackgroundProcess
 }
 
 func (c *serviceCommand) ServeHTTP(w http.ResponseWriter, r *http.Request) {
