@@ -15,6 +15,10 @@ apps:
     command: bin/client config
     plugs:
       - network
+  status:
+    command: bin/client status
+    plugs:
+      - network
   setup-wizard:
     command: bin/client wizard
     plugs:

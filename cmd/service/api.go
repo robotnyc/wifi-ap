@@ -19,13 +19,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 )
 
 var api = []*serviceCommand{
 	configurationCmd,
+	statusCmd,
 }
 
 var (
@@ -33,6 +33,11 @@ var (
 		Path: "/v1/configuration",
 		GET: getConfiguration,
 		POST: postConfiguration,
+	}
+	statusCmd = &serviceCommand{
+		Path: "/v1/status",
+		GET: getStatus,
+		POST: postStatus,
 	}
 	validTokens map[string]bool
 )
@@ -102,16 +107,71 @@ func postConfiguration(c *serviceCommand, writer http.ResponseWriter, request *h
 		file.WriteString(fmt.Sprintf("%s=%s\n", key, value))
 	}
 
+	if err := restartAccessPoint(c); err != nil {
+		resp := makeErrorResponse(http.StatusInternalServerError, "Failed to restart AP process", "internal-error")
+		sendHTTPResponse(writer, resp)
+		return
+	}
+
+	sendHTTPResponse(writer, makeResponse(http.StatusOK, nil))
+}
+
+func restartAccessPoint(c *serviceCommand) error {
 	if c.s.ap != nil {
 		// Now that we have all configuration changes successfully applied
 		// we can safely restart the service.
 		if err := c.s.ap.Restart(); err != nil {
-			log.Println("error: ", err)
+			return err
+		}
+	}
+	return nil
+}
+
+func getStatus(c *serviceCommand, writer http.ResponseWriter, request *http.Request) {
+	status := make(map[string]string)
+
+	status["ap-active"] = "0"
+	if c.s.ap != nil && c.s.ap.Running() {
+		status["ap-active"] = "1"
+	}
+
+	sendHTTPResponse(writer, makeResponse(http.StatusOK, status))
+}
+
+func postStatus(c *serviceCommand, writer http.ResponseWriter, request *http.Request) {
+	body, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		resp := makeErrorResponse(http.StatusInternalServerError, "Error reading the request body", "internal-error")
+		sendHTTPResponse(writer, resp)
+		return
+	}
+
+	var items map[string]string
+	if json.Unmarshal(body, &items) != nil {
+		resp := makeErrorResponse(http.StatusInternalServerError, "Malformed request", "internal-error")
+		sendHTTPResponse(writer, resp)
+		return
+	}
+
+	action, ok := items["action"]
+	if !ok {
+		resp := makeErrorResponse(http.StatusInternalServerError, "Mailformed request", "internal-error")
+		sendHTTPResponse(writer, resp)
+		return
+	}
+
+	switch (action) {
+	case "restart-ap":
+		if err = restartAccessPoint(c); err != nil {
 			resp := makeErrorResponse(http.StatusInternalServerError, "Failed to restart AP process", "internal-error")
 			sendHTTPResponse(writer, resp)
 			return
 		}
+
+		resp := makeResponse(http.StatusOK, nil)
+		sendHTTPResponse(writer, resp)
 	}
 
-	sendHTTPResponse(writer, makeResponse(http.StatusOK, nil))
+	resp := makeErrorResponse(http.StatusInternalServerError, "Invalid request", "internal-error")
+	sendHTTPResponse(writer, resp)
 }

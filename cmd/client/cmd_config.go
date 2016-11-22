@@ -70,7 +70,7 @@ func (cmd *configCommand) Execute(args []string) error {
 }
 
 func init() {
-	cmdConfig, _ := addCommand("config", "Adjust the service configuration", "", &configCommand{})
-	cmdConfig.AddCommand("set", "", "", &setCommand{})
-	cmdConfig.AddCommand("get", "", "", &getCommand{})
+	cmd, _ := addCommand("config", "Adjust the service configuration", "", &configCommand{})
+	cmd.AddCommand("set", "", "", &setCommand{})
+	cmd.AddCommand("get", "", "", &getCommand{})
 }

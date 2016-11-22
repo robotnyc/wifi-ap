@@ -25,6 +25,7 @@ import (
 const (
 	servicePort        = 5005
 	configurationV1Uri = "/v1/configuration"
+	statusV1Uri        = "/v1/status"
 )
 
 type serviceResponse struct {
@@ -36,6 +37,10 @@ type serviceResponse struct {
 
 func getServiceConfigurationURI() string {
 	return fmt.Sprintf("http://localhost:%d%s", servicePort, configurationV1Uri)
+}
+
+func getServiceStatusURI() string {
+	return fmt.Sprintf("http://localhost:%d%s", servicePort, statusV1Uri)
 }
 
 type doer interface {
