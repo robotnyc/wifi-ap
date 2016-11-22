@@ -16,9 +16,6 @@ execute: |
     /snap/bin/wifi-ap.config set disabled 0
     /snap/bin/wifi-ap.config set wifi.ssid 'Ubuntu👍'
 
-    systemctl restart snap.wifi-ap.backend
-    wait_for_systemd_service snap.wifi-ap.backend
-
     snap install wireless-tools
     snap connect wireless-tools:network-control core
 
