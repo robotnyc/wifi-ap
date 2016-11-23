@@ -52,5 +52,7 @@ func (cmd *statusCommand) Execute(args []string) error {
 
 func init() {
 	cmd, _ := addCommand("status", "Show various status information about the access point", "", &statusCommand{})
+	cmd.SubcommandsOptional = true
+
 	cmd.AddCommand("restart-ap", "Restart access point", "", &restartCommand{})
 }
