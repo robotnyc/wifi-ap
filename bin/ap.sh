@@ -40,13 +40,17 @@ fi
 
 cleanup_on_exit() {
 	read HOSTAPD_PID <$SNAP_DATA/hostapd.pid
-	kill -TERM $HOSTAPD_PID || true
-	wait $HOSTAPD_PID
+	if [ -n "$HOSTAPD_PID" ] ; then
+		kill -TERM $HOSTAPD_PID || true
+		wait $HOSTAPD_PID
+	fi
 
 	read DNSMASQ_PID <$SNAP_DATA/dnsmasq.pid
-	# If dnsmasq is already gone don't error out here
-	kill -TERM $DNSMASQ_PID || true
-	wait $DNSMASQ_PID
+	if [ -n "$DNSMASQ_PID" ] ; then
+		# If dnsmasq is already gone don't error out here
+		kill -TERM $DNSMASQ_PID || true
+		wait $DNSMASQ_PID
+	fi
 
 	iface=$WIFI_INTERFACE
 	if [ "$WIFI_INTERFACE_MODE" = "virtual" ] ; then
