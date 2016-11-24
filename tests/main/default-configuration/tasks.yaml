@@ -1,22 +1,22 @@
 summary: Verify snap has correct default configuration
 
 execute: |
-    test `wifi-ap.config get debug` -eq 0
-    test `wifi-ap.config get disabled` -eq 1
-    test "`wifi-ap.config get dhcp.lease-time`" = "12h"
-    test "`wifi-ap.config get dhcp.range-start`" = "10.0.60.3"
-    test "`wifi-ap.config get dhcp.range-stop`" = "10.0.60.20"
-    test `wifi-ap.config get share.disabled` = 0
-    test "`wifi-ap.config get share.network-interface`" = "eth0"
-    test "`wifi-ap.config get wifi.address`" = "10.0.60.1"
-    test `wifi-ap.config get wifi.channel` -eq 6
-    test "`wifi-ap.config get wifi.hostapd-driver`" = "nl80211"
-    test "`wifi-ap.config get wifi.interface`" = "wlan0"
-    test "`wifi-ap.config get wifi.interface-mode`" = "direct"
-    test "`wifi-ap.config get wifi.netmask`" = "255.255.255.0"
-    test "`wifi-ap.config get wifi.operation-mode`" = "g"
-    test "`wifi-ap.config get wifi.security`" = "open"
-    test "`wifi-ap.config get wifi.ssid`" = "Ubuntu"
+    test `/snap/bin/wifi-ap.config get debug` -eq 0
+    test `/snap/bin/wifi-ap.config get disabled` -eq 1
+    test "`/snap/bin/wifi-ap.config get dhcp.lease-time`" = "12h"
+    test "`/snap/bin/wifi-ap.config get dhcp.range-start`" = "10.0.60.3"
+    test "`/snap/bin/wifi-ap.config get dhcp.range-stop`" = "10.0.60.20"
+    test `/snap/bin/wifi-ap.config get share.disabled` = 0
+    test "`/snap/bin/wifi-ap.config get share.network-interface`" = "eth0"
+    test "`/snap/bin/wifi-ap.config get wifi.address`" = "10.0.60.1"
+    test `/snap/bin/wifi-ap.config get wifi.channel` -eq 6
+    test "/snap/bin/wifi-ap.config get wifi.hostapd-driver`" = "nl80211"
+    test "`/snap/bin/wifi-ap.config get wifi.interface`" = "wlan0"
+    test "`/snap/bin/wifi-ap.config get wifi.interface-mode`" = "direct"
+    test "`/snap/bin/wifi-ap.config get wifi.netmask`" = "255.255.255.0"
+    test "`/snap/bin/wifi-ap.config get wifi.operation-mode`" = "g"
+    test "`/snap/bin/wifi-ap.config get wifi.security`" = "open"
+    test "`/snap/bin/wifi-ap.config get wifi.ssid`" = "Ubuntu"
     # FIXME: Once wifi-ap.config get returns correct error codes when an
     # item does not exist we can drop the grep check here.
-    wifi-ap.config get wifi.security-passphrase | grep 'does not exist'
+    /snap/bin/wifi-ap.config get wifi.security-passphrase | grep 'does not exist'

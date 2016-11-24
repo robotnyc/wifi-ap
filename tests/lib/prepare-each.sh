@@ -1,6 +1,0 @@
-SNAP_INSTALL_OPTS=
-if [ -n "$SNAP_CHANNEL" ] ; then
-	SNAP_INSTALL_OPTS="--$SNAP_CHANNEL"
-fi
-
-snap install $SNAP_INSTALL_OPTS $SNAP_NAME

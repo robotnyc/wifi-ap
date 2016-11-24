@@ -8,31 +8,32 @@ restore: |
     rmmod mac80211_hwsim
 
 execute: |
+    . $TESTSLIB/utilities.sh
+
     # Default configuration will use wlan0 which we just created
-    wifi-ap.config set disabled 0
+    /snap/bin/wifi-ap.config set disabled 0
 
     systemctl restart snap.wifi-ap.backend
-    while ! systemctl status snap.wifi-ap.backend ; do
-        sleep 1
-    done
+    wait_for_systemd_service snap.wifi-ap.backend
 
     snap install wireless-tools
+    snap connect wireless-tools:network-control core
 
     # Scan for existing WiFi networks and ensure our 'Ubuntu' one is part
     # of the result
     ifconfig wlan1 up
-    wireless-tools.iw dev wlan1 scan | grep 'SSID: Ubuntu'
-    wireless-tools.iw dev wlan1 scan | grep 'primary channel: 6'
+    /snap/bin/wireless-tools.iw dev wlan1 scan | grep 'SSID: Ubuntu'
+    /snap/bin/wireless-tools.iw dev wlan1 scan | grep 'primary channel: 6'
     # There should be only a single network
-    network_count=`wireless-tools.iw dev wlan1 scan | grep -c 'SSID: Ubuntu'`
+    network_count=`/snap/bin/wireless-tools.iw dev wlan1 scan | grep -c 'SSID: Ubuntu'`
     test $network_count -eq 1
     # The AP should not be secured by default
-    ! wireless-tools.iw dev wlan1 scan | grep 'WPA:'
-    ! wireless-tools.iw dev wlan1 scan | grep 'RSN:'
+    ! /snap/bin/wireless-tools.iw dev wlan1 scan | grep 'WPA:'
+    ! /snap/bin/wireless-tools.iw dev wlan1 scan | grep 'RSN:'
 
     # Verify we can associate with the AP
-    wireless-tools.iw wlan1 connect Ubuntu
-    wireless-tools.iw dev wlan1 link | grep 'SSID: Ubuntu'
+    /snap/bin/wireless-tools.iw wlan1 connect Ubuntu
+    /snap/bin/wireless-tools.iw dev wlan1 link | grep 'SSID: Ubuntu'
 
     # And we should get an IP address assigned over DHCP
     dhclient wlan1

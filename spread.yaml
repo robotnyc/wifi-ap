@@ -36,6 +36,9 @@ path: /home/wifi-ap
 exclude:
   - .git
 
+prepare: |
+  . $TESTSLIB/prepare-all.sh
+
 suites:
     tests/main/:
         summary: Full-system tests for the wifi-ap snap
@@ -43,7 +46,5 @@ suites:
             - ubuntu-core-16
         prepare: |
             . $TESTSLIB/prepare.sh
-        prepare-each: |
-            . $TESTSLIB/prepare-each.sh
         restore-each: |
             . $TESTSLIB/restore-each.sh

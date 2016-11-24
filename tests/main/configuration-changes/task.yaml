@@ -1,18 +1,17 @@
 summary: Test that we can change the configuration
 
 execute: |
-    test "`wifi-ap.config get wifi.interface`" = "wlan0"
-    wifi-ap.config set wifi.interface wlan1
-    test "`wifi-ap.config get wifi.interface`" = "wlan1"
+    test "`/snap/bin/wifi-ap.config get wifi.interface`" = "wlan0"
+    /snap/bin/wifi-ap.config set wifi.interface wlan1
+    test "`/snap/bin/wifi-ap.config get wifi.interface`" = "wlan1"
 
-    test `wifi-ap.config get disabled` -eq 1
-    wifi-ap.config set disabled 0
+    test `/snap/bin/wifi-ap.config get disabled` -eq 1
+    /snap/bin/wifi-ap.config set disabled 0
     # Verify 'disabled' was safed and change to 'wifi.interface' is still there
-    test `wifi-ap.config get disabled` -eq 0
-    test "`wifi-ap.config get wifi.interface`" = "wlan1"
+    test `/snap/bin/wifi-ap.config get disabled` -eq 0
+    test "`/snap/bin/wifi-ap.config get wifi.interface`" = "wlan1"
 
-    ! wifi-ap.config set
-    ! wifi-ap.config set wifi.interface
-    ! wifi-ap.config set wifi.interfac tun0
-    ! wifi-ap.config set wrong.token xyz
-
+    ! /snap/bin/wifi-ap.config set
+    ! /snap/bin/wifi-ap.config set wifi.interface
+    ! /snap/bin/wifi-ap.config set wifi.interfac tun0
+    ! /snap/bin/wifi-ap.config set wrong.token xyz

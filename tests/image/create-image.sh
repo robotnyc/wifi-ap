@@ -26,14 +26,25 @@ if [ ! -z "$1" ] ; then
 	channel=$1
 fi
 
+snap=
+if [ ! -z "$2" ] ; then
+	snap=$2
+fi
+
 model=pc
 arch=amd64
 image_name=ubuntu-core-16.img
+ubuntu_image_extra_args=
+
+if [ ! -z "$snap" ] ; then
+	ubuntu_image_extra_args="--extra-snaps $snap"
+fi
 
 ubuntu-image \
 	--channel $channel \
 	-o $image_name \
-	--image-size 2G \
+	--image-size 4G \
+	$ubuntu_image_extra_args \
 	$model.model
 
 kpartx -a $image_name
