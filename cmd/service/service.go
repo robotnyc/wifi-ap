@@ -19,10 +19,14 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
 	"path"
+	"time"
+
+	"gopkg.in/tomb.v2"
 )
 
 const (
@@ -42,6 +46,9 @@ type serviceCommand struct {
 }
 
 type service struct {
+	tomb tomb.Tomb
+	server *http.Server
+	listener net.Listener
 	router *mux.Router
 	ap BackgroundProcess
 }
@@ -95,6 +102,13 @@ func (s *service) setupAccesPoint() error {
 	return nil
 }
 
+func (s *service) Shutdown() {
+	log.Println("Shutting down ...")
+	s.listener.Close()
+	s.tomb.Kill(nil)
+	s.tomb.Wait()
+}
+
 func (s *service) Run() error {
 	s.addRoutes()
 	if err := s.setupAccesPoint(); err != nil {
@@ -107,10 +121,39 @@ func (s *service) Run() error {
 	}
 
 	addr := fmt.Sprintf("%s:%d", serviceAddress, servicePort)
-	err = http.ListenAndServe(addr, s.router)
+	s.server = &http.Server{Addr: addr, Handler: s.router}
+	s.listener, err = net.Listen("tcp", addr)
 	if err != nil {
 		return err
 	}
 
+	s.tomb.Go(func() error {
+		err := s.server.Serve(tcpKeepAliveListener{s.listener.(*net.TCPListener)})
+		if err != nil {
+			return fmt.Errorf("Failed to server HTTP: %s", err)
+		}
+		return nil
+	})
+
+	s.tomb.Wait()
+
+	if s.ap.Running() {
+		s.ap.Stop()
+	}
+
 	return nil
+}
+
+type tcpKeepAliveListener struct {
+	*net.TCPListener
+}
+
+func (ln tcpKeepAliveListener) Accept() (c net.Conn, err error) {
+	tc, err := ln.AcceptTCP()
+	if err != nil {
+		return
+	}
+	tc.SetKeepAlive(true)
+	tc.SetKeepAlivePeriod(3 * time.Minute)
+	return tc, nil
 }

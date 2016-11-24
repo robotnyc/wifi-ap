@@ -16,10 +16,21 @@ package main
 
 import (
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
 	s := &service{}
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	go func(s *service){
+		_ = <-c
+		s.Shutdown()
+	}(s)
+
 	if err := s.Run(); err != nil {
 		log.Fatalf("Failed to start service: %s", err)
 	}
