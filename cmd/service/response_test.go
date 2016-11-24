@@ -24,7 +24,7 @@ func (s *S) TestMakeErrorResponse(c *check.C) {
 	resp := makeErrorResponse(http.StatusInternalServerError, "my error message", "internal-error")
 	c.Assert(resp.Result, check.DeepEquals, map[string]string{
 		"message": "my error message",
-		"kind": "internal-error",
+		"kind":    "internal-error",
 	})
 	c.Assert(resp.Status, check.Equals, "Internal Server Error")
 	c.Assert(resp.StatusCode, check.Equals, http.StatusInternalServerError)
@@ -38,7 +38,7 @@ func (s *S) TestMakeResponse(c *check.C) {
 	c.Assert(resp.StatusCode, check.Equals, http.StatusOK)
 	c.Assert(resp.Type, check.Equals, "sync")
 
-	data := map[string]string {"foo": "bar",}
+	data := map[string]string{"foo": "bar"}
 	resp = makeResponse(http.StatusOK, data)
 	c.Assert(resp.Result, check.DeepEquals, data)
 	c.Assert(resp.Status, check.Equals, "OK")

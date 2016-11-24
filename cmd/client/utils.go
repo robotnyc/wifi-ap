@@ -16,18 +16,18 @@
 package main
 
 import (
-    "fmt"
-    "os"
-    "sort"
+	"fmt"
+	"os"
+	"sort"
 )
 
 func printMapSorted(m map[string]string) {
-    sortedKeys := make([]string, 0, len(m))
-    for key, _ := range m {
-        sortedKeys = append(sortedKeys, key)
-    }
-    sort.Strings(sortedKeys)
-    for n := range sortedKeys {
-        fmt.Fprintf(os.Stdout, "%s: %s\n", sortedKeys[n], m[sortedKeys[n]])
-    }
+	sortedKeys := make([]string, 0, len(m))
+	for key, _ := range m {
+		sortedKeys = append(sortedKeys, key)
+	}
+	sort.Strings(sortedKeys)
+	for n := range sortedKeys {
+		fmt.Fprintf(os.Stdout, "%s: %s\n", sortedKeys[n], m[sortedKeys[n]])
+	}
 }

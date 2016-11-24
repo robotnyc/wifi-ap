@@ -31,12 +31,12 @@ var api = []*serviceCommand{
 var (
 	configurationCmd = &serviceCommand{
 		Path: "/v1/configuration",
-		GET: getConfiguration,
+		GET:  getConfiguration,
 		POST: postConfiguration,
 	}
 	statusCmd = &serviceCommand{
 		Path: "/v1/status",
-		GET: getStatus,
+		GET:  getStatus,
 		POST: postStatus,
 	}
 	validTokens map[string]bool
@@ -159,7 +159,7 @@ func postStatus(c *serviceCommand, writer http.ResponseWriter, request *http.Req
 		return
 	}
 
-	switch (action) {
+	switch action {
 	case "restart-ap":
 		if err = restartAccessPoint(c); err != nil {
 			resp := makeErrorResponse(http.StatusInternalServerError, "Failed to restart AP process", "internal-error")

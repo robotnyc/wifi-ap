@@ -22,8 +22,8 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"path/filepath"
 	"path"
+	"path/filepath"
 	"time"
 
 	"gopkg.in/tomb.v2"
@@ -46,11 +46,11 @@ type serviceCommand struct {
 }
 
 type service struct {
-	tomb tomb.Tomb
-	server *http.Server
+	tomb     tomb.Tomb
+	server   *http.Server
 	listener net.Listener
-	router *mux.Router
-	ap BackgroundProcess
+	router   *mux.Router
+	ap       BackgroundProcess
 }
 
 func (c *serviceCommand) ServeHTTP(w http.ResponseWriter, r *http.Request) {

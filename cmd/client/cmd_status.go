@@ -46,7 +46,7 @@ func (cmd *statusCommand) Execute(args []string) error {
 	if err != nil {
 		return err
 	}
-    printMapSorted(response.Result)
+	printMapSorted(response.Result)
 	return nil
 }
 

@@ -26,10 +26,10 @@ import (
 )
 
 type backgroundProcessImpl struct {
-	path string
-	args []string
+	path    string
+	args    []string
 	command *exec.Cmd
-	tomb *tomb.Tomb
+	tomb    *tomb.Tomb
 }
 
 // BackgroundProcess provides control over a process running in the
@@ -43,8 +43,8 @@ type BackgroundProcess interface {
 
 func NewBackgroundProcess(path string, args ...string) (BackgroundProcess, error) {
 	p := &backgroundProcessImpl{
-		path: path,
-		args: args,
+		path:    path,
+		args:    args,
 		command: nil,
 	}
 	if p == nil {
@@ -82,7 +82,7 @@ func (p *backgroundProcessImpl) Start() error {
 			fmt.Printf("Failed to execute process for binary '%s'", p.path)
 			return err
 		}
-		c <-1
+		c <- 1
 		p.command.Wait()
 		p.command = nil
 		return nil
@@ -108,7 +108,7 @@ func (p *backgroundProcessImpl) Stop() error {
 	if !p.Running() {
 		return nil
 	}
-	timer := time.AfterFunc(10 * time.Second, func() {
+	timer := time.AfterFunc(10*time.Second, func() {
 		p.command.Process.Kill()
 	})
 	p.command.Process.Signal(syscall.SIGTERM)

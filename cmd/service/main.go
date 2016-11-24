@@ -26,7 +26,7 @@ func main() {
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
-	go func(s *service){
+	go func(s *service) {
 		_ = <-c
 		s.Shutdown()
 	}(s)
