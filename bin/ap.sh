@@ -76,6 +76,10 @@ cleanup_on_exit() {
 	fi
 }
 
+# We need to install this right before we do anything to
+# ensure that we cleanup everything again when we termiante.
+trap cleanup_on_exit TERM
+
 iface=$WIFI_INTERFACE
 if [ "$WIFI_INTERFACE_MODE" = "virtual" ] ; then
 	iface=$DEFAULT_ACCESS_POINT_INTERFACE
@@ -231,8 +235,6 @@ case "$WIFI_HOSTAPD_DRIVER" in
 		# Fallthrough and use the default hostapd
 		;;
 esac
-
-trap cleanup_on_exit TERM
 
 # Startup hostapd with the configuration we've put in place
 $hostapd $EXTRA_ARGS $SNAP_DATA/hostapd.conf &
