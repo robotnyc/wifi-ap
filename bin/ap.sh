@@ -64,15 +64,15 @@ cleanup_on_exit() {
 		sysctl -w net.ipv4.ip_forward=0
 	fi
 
-	if [ "$WIFI_INTERFACE_MODE" = "virtual" ] && does_interface_exist $iface ; then
-		$SNAP/bin/iw dev $iface del
-	fi
-
 	if is_nm_running ; then
 		# Hand interface back to network-manager. This will also trigger the
 		# auto connection process inside network-manager to get connected
 		# with the previous network.
 		$SNAP/bin/nmcli d set $iface managed yes
+	fi
+
+	if [ "$WIFI_INTERFACE_MODE" = "virtual" ] ; then
+		$SNAP/bin/iw dev $iface del
 	fi
 }
 
