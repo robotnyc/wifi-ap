@@ -16,11 +16,13 @@
 package main
 
 import (
+	"fmt"
+
 	"gopkg.in/check.v1"
 )
 
 func (s *S) TestBackgroundProcessStartStop(c *check.C) {
-	p, err := NewBackgroundProcess("/bin/true")
+	p, err := NewBackgroundProcess("/bin/sleep", "1000")
 	c.Assert(err, check.IsNil)
 	c.Assert(p.Running(), check.Equals, false)
 	c.Assert(p.Start(), check.IsNil)
@@ -28,5 +30,7 @@ func (s *S) TestBackgroundProcessStartStop(c *check.C) {
 	c.Assert(p.Stop(), check.IsNil)
 	c.Assert(p.Running(), check.Equals, false)
 	c.Assert(p.Restart(), check.IsNil)
+	c.Assert(p.Running(), check.Equals, true)
+	c.Assert(p.Start(), check.DeepEquals, fmt.Errorf("Background process is already running"))
 	c.Assert(p.Running(), check.Equals, true)
 }

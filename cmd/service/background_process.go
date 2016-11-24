@@ -21,11 +21,15 @@ import (
 	"os/exec"
 	"syscall"
 	"time"
+
+	"gopkg.in/tomb.v2"
 )
 
 type backgroundProcessImpl struct {
 	path string
+	args []string
 	command *exec.Cmd
+	tomb *tomb.Tomb
 }
 
 // BackgroundProcess provides control over a process running in the
@@ -37,9 +41,10 @@ type BackgroundProcess interface {
 	Running() bool
 }
 
-func NewBackgroundProcess(path string) (BackgroundProcess, error) {
+func NewBackgroundProcess(path string, args ...string) (BackgroundProcess, error) {
 	p := &backgroundProcessImpl{
 		path: path,
+		args: args,
 		command: nil,
 	}
 	if p == nil {
@@ -50,9 +55,13 @@ func NewBackgroundProcess(path string) (BackgroundProcess, error) {
 }
 
 func (p *backgroundProcessImpl) Start() error {
-	p.command = exec.Command(p.path)
+	if p.Running() {
+		return fmt.Errorf("Background process is already running")
+	}
+
+	p.command = exec.Command(p.path, p.args...)
 	if p.command == nil {
-		return fmt.Errorf("failed to create background process")
+		return fmt.Errorf("Failed to create background process")
 	}
 
 	// Forward output to regular stdout/stderr
@@ -62,10 +71,25 @@ func (p *backgroundProcessImpl) Start() error {
 	// Create a new process group
 	p.command.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 
-	err := p.command.Start()
-	if err != nil {
-		return err
-	}
+	// We need to recreate the tomb here everytime as otherwise
+	// it will not cleanup its state from the last time.
+	p.tomb = &tomb.Tomb{}
+
+	c := make(chan int)
+	p.tomb.Go(func() error {
+		err := p.command.Start()
+		if err != nil {
+			fmt.Printf("Failed to execute process for binary '%s'", p.path)
+			return err
+		}
+		c <-1
+		p.command.Wait()
+		p.command = nil
+		return nil
+	})
+
+	// Wait until the process is really started
+	_ = <-c
 
 	return nil
 }
@@ -81,16 +105,16 @@ func (p *backgroundProcessImpl) Restart() error {
 }
 
 func (p *backgroundProcessImpl) Stop() error {
-	if p.command == nil {
+	if !p.Running() {
 		return nil
 	}
-	timer := time.AfterFunc(3 * time.Second, func() {
+	timer := time.AfterFunc(10 * time.Second, func() {
 		p.command.Process.Kill()
 	})
 	p.command.Process.Signal(syscall.SIGTERM)
-	p.command.Wait()
+	p.tomb.Kill(nil)
+	p.tomb.Wait()
 	timer.Stop()
-	p.command = nil
 	return nil
 }
 

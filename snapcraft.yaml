@@ -73,6 +73,7 @@ parts:
       - bin
     build-packages:
       - golang-github-gorilla-mux-dev
+      - golang-gopkg-tomb.v2-dev
 
   dnsmasq:
     plugin: make
