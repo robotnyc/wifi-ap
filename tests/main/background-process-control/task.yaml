@@ -1,0 +1,46 @@
+summary: Test correct service behavior to ensure the background AP process is running
+
+prepare: |
+    # Simulate two WiFi radio network interfaces
+    modprobe mac80211_hwsim radios=2
+
+    # We need some tools for scanning etc.
+    snap install wireless-tools
+    snap connect wireless-tools:network-control core
+
+restore: |
+    rmmod mac80211_hwsim
+
+execute: |
+    # Verify first the management service is up and running
+    /snap/bin/wifi-ap.config get
+    test "`wifi-ap.config get disabled`" = "1"
+
+    # AP should be not active at this time as still disabled
+    /snap/bin/wifi-ap.status | grep "ap.active: 0"
+
+    # Now start the AP and ensure its reported as active
+    /snap/bin/wifi-ap.config set disabled 0
+    /snap/bin/wifi-ap.status | grep "ap.active: 1"
+    # And if we wait a bit more it should be still active
+    sleep 5
+    /snap/bin/wifi-ap.status | grep "ap.active: 1"
+
+    # Scan for networks on the other side of the WiFi network
+    # and ensure the network is available.
+    ifconfig wlan1 up
+    /snap/bin/wireless-tools.iw dev wlan1 scan | grep 'SSID: Ubuntu'
+
+    # Restart should get us back into the same state we were in before
+    /snap/bin/wifi-ap.status restart-ap
+    # Restart needs some time 
+    sleep 5
+    /snap/bin/wifi-ap.status | grep "ap.active: 1"
+    /snap/bin/wireless-tools.iw dev wlan1 scan | grep 'SSID: Ubuntu'
+
+    # If we now stop the management-service the hostapd and dnsmasq
+    # instances should go away.
+    systemctl stop snap.wifi-ap.management-service
+    while /snap/bin/wifi-ap.status | grep "ap.active: 1" ; do
+        sleep 0.5
+    done
