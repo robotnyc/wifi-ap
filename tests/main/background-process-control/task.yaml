@@ -14,7 +14,7 @@ restore: |
 execute: |
     # Verify first the management service is up and running
     /snap/bin/wifi-ap.config get
-    test "`wifi-ap.config get disabled`" = "1"
+    test "`/snap/bin/wifi-ap.config get disabled`" = "1"
 
     # AP should be not active at this time as still disabled
     /snap/bin/wifi-ap.status | grep "ap.active: 0"
