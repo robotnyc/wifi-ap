@@ -27,7 +27,7 @@ func printMapSorted(m map[string]string) {
 		sortedKeys = append(sortedKeys, key)
 	}
 	sort.Strings(sortedKeys)
-	for n := range sortedKeys {
-		fmt.Fprintf(os.Stdout, "%s: %s\n", sortedKeys[n], m[sortedKeys[n]])
+	for _, k := range sortedKeys {
+		fmt.Fprintf(os.Stdout, "%s: %s\n", k, m[k])
 	}
 }

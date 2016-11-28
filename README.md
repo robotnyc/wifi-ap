@@ -19,7 +19,7 @@ Now we need to export the GOPATH and point it to the directory
 snapcraft already created for us.
 
 ```
- $ export GOPATH=`pwd`/parts/management-service/go
+ $ export GOPATH=$PWD/parts/management-service/go
 ```
 
 Now you can build the management-service by running
@@ -36,7 +36,7 @@ need to setup the right environment variables.
  # Needs to be the top source dir which contains the snapcraft.yaml
  $ export SNAP=`pwd`
  $ mkdir tmp-data
- $ export SNAP_DATA=`pwd`/tmp-data
+ $ export SNAP_DATA=$PWD/tmp-data
  $ cmd/service/management-service
 ```
 
