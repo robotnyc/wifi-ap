@@ -1,0 +1,21 @@
+summary: Verify that wizard fails when all private subnets are busy
+
+prepare: |
+    # Simulate a radio network interfaces
+    modprobe mac80211_hwsim radios=1
+
+    # Dummy interface to assign an IP to
+    modprobe dummy
+
+    # Set an IP with a /8 mask which will waste all usable IP
+    ifconfig dummy0 10.0.0.2/8
+
+restore: |
+    rmmod mac80211_hwsim dummy
+
+execute: |
+    # Start the automatic wizard, it must fail
+    ! /snap/bin/wifi-ap.setup-wizard wizard --auto
+
+    # Check for a descriptive error message
+    /snap/bin/wifi-ap.setup-wizard wizard --auto 2>&1 |grep 'No free netmask found'
