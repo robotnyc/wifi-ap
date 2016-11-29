@@ -3,6 +3,8 @@ summary: Stress test for the AP status control API
 environment:
     RESTART_ITERATIONS: 5
 
+manual: true
+
 prepare: |
     # Simulate two WiFi radio network interfaces
     modprobe mac80211_hwsim radios=2
