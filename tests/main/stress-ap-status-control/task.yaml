@@ -1,7 +1,7 @@
 summary: Stress test for the AP status control API
 
 environment:
-    RESTART_ITERATIONS: 50
+    RESTART_ITERATIONS: 10
 
 prepare: |
     # Simulate two WiFi radio network interfaces
