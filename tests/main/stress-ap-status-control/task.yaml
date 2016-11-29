@@ -1,9 +1,7 @@
 summary: Stress test for the AP status control API
 
 environment:
-    RESTART_ITERATIONS: 5
-
-manual: true
+    RESTART_ITERATIONS: 50
 
 prepare: |
     # Simulate two WiFi radio network interfaces
@@ -45,3 +43,7 @@ execute: |
     sudo /snap/bin/wireless-tools.iw wlan1 connect Ubuntu
     sudo /snap/bin/wireless-tools.iw dev wlan1 link | grep 'SSID: Ubuntu'
 
+    # We should only have one hostapd and one dnsmasq process at this time
+    # (we have to ignore the grep'ing process as otherwise we get a count of 2)
+    test `ps axu | grep hostapd | grep -v grep | wc -l` -eq 1
+    test `ps axu | grep dnsmasq | grep -v grep | wc -l` -eq 1
