@@ -17,13 +17,13 @@
 set -x
 
 does_interface_exist() {
-	grep -q $1 /proc/net/dev
+	[ -d /sys/class/net/$1 ]
 }
 
 wait_until_interface_is_available() {
-	while ! does_interface_exist $iface; do
-		# Wait for 10ms
-		sleep 0.01
+	while ! does_interface_exist $1; do
+		# Wait for 200ms
+		sleep 0.2
 	done
 }
 

@@ -5,15 +5,9 @@ environment:
     SCAN_ITERATIONS: 10
 
 prepare: |
-    # Simulate two WiFi radio network interfaces
-    modprobe mac80211_hwsim radios=2
-
     # We need some tools for scanning etc.
     snap install wireless-tools
     snap connect wireless-tools:network-control core
-
-restore: |
-    rmmod mac80211_hwsim
 
 execute: |
     # Bring up the access point first

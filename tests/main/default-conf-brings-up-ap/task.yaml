@@ -1,17 +1,7 @@
 summary: Verify that the default configuration is able to spawn up an AP
 
-prepare: |
-    # Simulate two WiFi radio network interfaces
-    modprobe mac80211_hwsim radios=2
-
-restore: |
-    rmmod mac80211_hwsim
-
 execute: |
     . $TESTSLIB/utilities.sh
-
-    # Default configuration will use wlan0 which we just created
-    /snap/bin/wifi-ap.config set disabled false
 
     snap install wireless-tools
     snap connect wireless-tools:network-control core
@@ -35,6 +25,6 @@ execute: |
     # And we should get an IP address assigned over DHCP
     dhclient wlan1
     # IP Address and routing needs to be correct
-    ifconfig wlan1 | fgrep 'inet addr:10.0.60.1'
+    ifconfig wlan1 | fgrep 'inet addr:10.0.60'
     ip route | fgrep '10.0.60.0/24 dev wlan1'
     ip route | fgrep 'default via 10.0.60.1 dev wlan1'

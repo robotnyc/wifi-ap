@@ -1,5 +1,8 @@
 summary: Verify that wizard fails when there are no WiFi devices
 
+prepare: |
+    rmmod mac80211_hwsim
+
 execute: |
     # Start the automatic wizard, it must fail
     ! /snap/bin/wifi-ap.setup-wizard --auto
