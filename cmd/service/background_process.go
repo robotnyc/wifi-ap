@@ -104,14 +104,29 @@ func (p *backgroundProcessImpl) Restart() error {
 	return nil
 }
 
+func (p *backgroundProcessImpl) killProcess(signal syscall.Signal) error {
+	if p == nil || p.command == nil {
+		return fmt.Errorf("Process is not running")
+	}
+	// We need to kill the whole process group as otherwise some
+	// child processes are still around
+	pgid, err := syscall.Getpgid(p.command.Process.Pid)
+	if err == nil {
+		syscall.Kill(-pgid, signal)
+	} else {
+		syscall.Kill(p.command.Process.Pid, signal)
+	}
+	return nil
+}
+
 func (p *backgroundProcessImpl) Stop() error {
 	if !p.Running() {
 		return nil
 	}
 	timer := time.AfterFunc(10*time.Second, func() {
-		p.command.Process.Kill()
+		p.killProcess(syscall.SIGKILL)
 	})
-	p.command.Process.Signal(syscall.SIGTERM)
+	p.killProcess(syscall.SIGTERM)
 	p.tomb.Kill(nil)
 	p.tomb.Wait()
 	timer.Stop()
