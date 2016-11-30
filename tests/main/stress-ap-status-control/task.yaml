@@ -1,7 +1,8 @@
 summary: Stress test for the AP status control API
 
 environment:
-    RESTART_ITERATIONS: 10
+    RESTART_ITERATIONS: 15
+    SCAN_ITERATIONS: 10
 
 prepare: |
     # Simulate two WiFi radio network interfaces
@@ -23,9 +24,18 @@ execute: |
 
     # Scan for networks on the other side of the WiFi network
     # and ensure the network is available.
-    sleep 3
     ifconfig wlan1 up
-    sudo /snap/bin/wireless-tools.iw dev wlan1 scan | grep 'SSID: Ubuntu'
+    n=0
+    found_ap=0
+    while [ $n -lt $SCAN_ITERATIONS ] ; do
+        if /snap/bin/wireless-tools.iw dev wlan1 scan | grep 'SSID: Ubuntu'; then
+            found_ap=1
+            break
+        fi
+        sleep 0.5
+        let n=n+1
+    done
+    test $found_ap -eq 1
 
     # We will restart the AP a huge number of times again and again
     # and expect that the AP afterwards comes back up normally and
@@ -33,12 +43,28 @@ execute: |
     n=0
     while [ $n -lt $RESTART_ITERATIONS ] ; do
         /snap/bin/wifi-ap.status restart-ap
+        sleep 0.5
         let n=n+1
     done
 
+    # Wait for AP to be marked as active again
+    while ! /snap/bin/wifi-ap.status | grep "ap.active: 1" ; do
+        sleep 0.5
+    done
+
     # The AP should be still available in our scan result
-    sleep 3
-    sudo /snap/bin/wireless-tools.iw dev wlan1 scan | grep 'SSID: Ubuntu'
+    n=0
+    found_ap=0
+    while [ $n -lt $SCAN_ITERATIONS ] ; do
+        if /snap/bin/wireless-tools.iw dev wlan1 scan | grep 'SSID: Ubuntu'; then
+            found_ap=1
+            break
+        fi
+        sleep 0.5
+        let n=n+1
+    done
+    test $found_ap -eq 1
+
     # Verify we can associate with the AP
     sudo /snap/bin/wireless-tools.iw wlan1 connect Ubuntu
     sudo /snap/bin/wireless-tools.iw dev wlan1 link | grep 'SSID: Ubuntu'
