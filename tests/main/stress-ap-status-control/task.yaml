@@ -1,0 +1,75 @@
+summary: Stress test for the AP status control API
+
+environment:
+    RESTART_ITERATIONS: 15
+    SCAN_ITERATIONS: 10
+
+prepare: |
+    # Simulate two WiFi radio network interfaces
+    modprobe mac80211_hwsim radios=2
+
+    # We need some tools for scanning etc.
+    snap install wireless-tools
+    snap connect wireless-tools:network-control core
+
+restore: |
+    rmmod mac80211_hwsim
+
+execute: |
+    # Bring up the access point first
+    /snap/bin/wifi-ap.config set disabled 0
+    while ! /snap/bin/wifi-ap.status | grep "ap.active: 1" ; do
+        sleep 0.5
+    done
+
+    # Scan for networks on the other side of the WiFi network
+    # and ensure the network is available.
+    ifconfig wlan1 up
+    n=0
+    found_ap=0
+    while [ $n -lt $SCAN_ITERATIONS ] ; do
+        if /snap/bin/wireless-tools.iw dev wlan1 scan | grep 'SSID: Ubuntu'; then
+            found_ap=1
+            break
+        fi
+        sleep 0.5
+        let n=n+1
+    done
+    test $found_ap -eq 1
+
+    # We will restart the AP a huge number of times again and again
+    # and expect that the AP afterwards comes back up normally and
+    # we can still search and connect to it.
+    n=0
+    while [ $n -lt $RESTART_ITERATIONS ] ; do
+        /snap/bin/wifi-ap.status restart-ap
+        sleep 0.5
+        let n=n+1
+    done
+
+    # Wait for AP to be marked as active again
+    while ! /snap/bin/wifi-ap.status | grep "ap.active: 1" ; do
+        sleep 0.5
+    done
+
+    # The AP should be still available in our scan result
+    n=0
+    found_ap=0
+    while [ $n -lt $SCAN_ITERATIONS ] ; do
+        if /snap/bin/wireless-tools.iw dev wlan1 scan | grep 'SSID: Ubuntu'; then
+            found_ap=1
+            break
+        fi
+        sleep 0.5
+        let n=n+1
+    done
+    test $found_ap -eq 1
+
+    # Verify we can associate with the AP
+    sudo /snap/bin/wireless-tools.iw wlan1 connect Ubuntu
+    sudo /snap/bin/wireless-tools.iw dev wlan1 link | grep 'SSID: Ubuntu'
+
+    # We should only have one hostapd and one dnsmasq process at this time
+    # (we have to ignore the grep'ing process as otherwise we get a count of 2)
+    test `ps axu | grep hostapd | grep -v grep | wc -l` -eq 1
+    test `ps axu | grep dnsmasq | grep -v grep | wc -l` -eq 1

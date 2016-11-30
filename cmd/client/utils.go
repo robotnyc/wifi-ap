@@ -1,3 +1,4 @@
+//
 // Copyright (C) 2016 Canonical Ltd
 //
 // This program is free software: you can redistribute it and/or modify
@@ -15,23 +16,18 @@
 package main
 
 import (
-	"log"
+	"fmt"
 	"os"
-	"os/signal"
-	"syscall"
+	"sort"
 )
 
-func main() {
-	s := &service{}
-
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
-	go func(s *service) {
-		_ = <-c
-		s.Shutdown()
-	}(s)
-
-	if err := s.Run(); err != nil {
-		log.Fatalf("Failed to start service: %s", err)
+func printMapSorted(m map[string]string) {
+	sortedKeys := make([]string, 0, len(m))
+	for key, _ := range m {
+		sortedKeys = append(sortedKeys, key)
+	}
+	sort.Strings(sortedKeys)
+	for _, k := range sortedKeys {
+		fmt.Fprintf(os.Stdout, "%s: %s\n", k, m[k])
 	}
 }

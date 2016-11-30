@@ -1,3 +1,4 @@
+//
 // Copyright (C) 2016 Canonical Ltd
 //
 // This program is free software: you can redistribute it and/or modify
@@ -15,23 +16,21 @@
 package main
 
 import (
-	"log"
-	"os"
-	"os/signal"
-	"syscall"
+	"fmt"
+
+	"gopkg.in/check.v1"
 )
 
-func main() {
-	s := &service{}
-
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
-	go func(s *service) {
-		_ = <-c
-		s.Shutdown()
-	}(s)
-
-	if err := s.Run(); err != nil {
-		log.Fatalf("Failed to start service: %s", err)
-	}
+func (s *S) TestBackgroundProcessStartStop(c *check.C) {
+	p, err := NewBackgroundProcess("/bin/sleep", "1000")
+	c.Assert(err, check.IsNil)
+	c.Assert(p.Running(), check.Equals, false)
+	c.Assert(p.Start(), check.IsNil)
+	c.Assert(p.Running(), check.Equals, true)
+	c.Assert(p.Stop(), check.IsNil)
+	c.Assert(p.Running(), check.Equals, false)
+	c.Assert(p.Restart(), check.IsNil)
+	c.Assert(p.Running(), check.Equals, true)
+	c.Assert(p.Start(), check.DeepEquals, fmt.Errorf("Background process is already running"))
+	c.Assert(p.Running(), check.Equals, true)
 }

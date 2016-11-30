@@ -36,60 +36,46 @@ type S struct{}
 
 var _ = check.Suite(&S{})
 
-// Test the config file path append routine
-func (s *S) TestPath(c *check.C) {
-	c.Assert(getConfigOnPath("/test"), check.Equals, "/test/config")
+type mockBackgroundProcess struct {
+	running bool
 }
 
-// List of tokens to be translated
-var cfgKeys = [...][2]string{
-	{"DISABLED", "disabled"},
-	{"WIFI_SSID", "wifi.ssid"},
-	{"WIFI_INTERFACE", "wifi.interface"},
-	{"WIFI_INTERFACE_MODE", "wifi.interface-mode"},
-	{"DHCP_RANGE_START", "dhcp.range-start"},
-	{"MYTOKEN", "mytoken"},
-	{"CFG_TOKEN", "cfg.token"},
-	{"MY_TOKEN$", "my.token$"},
+func (p *mockBackgroundProcess) Start() error {
+	p.running = true
+	return nil
 }
 
-// Test token conversion from internal format
-func (s *S) TestConvertKeyToRepresentationFormat(c *check.C) {
-	for _, st := range cfgKeys {
-		c.Assert(convertKeyToRepresentationFormat(st[0]), check.Equals, st[1])
-	}
+func (p *mockBackgroundProcess) Stop() error {
+	p.running = false
+	return nil
 }
 
-// Test token conversion to internal format
-func (s *S) TestConvertKeyToStorageFormat(c *check.C) {
-	for _, st := range cfgKeys {
-		c.Assert(convertKeyToStorageFormat(st[1]), check.Equals, st[0])
-	}
+func (p *mockBackgroundProcess) Restart() error {
+	p.running = true
+	return nil
 }
 
-// List of malicious tokens which needs to be escaped
-func (s *S) TestEscapeShell(c *check.C) {
-	cmds := [...][2]string{
-		{"my_ap", "my_ap"},
-		{`my ap`, `"my ap"`},
-		{`my "ap"`, `"my \"ap\""`},
-		{`$(ps ax)`, `"\$(ps ax)"`},
-		{"`ls /`", "\"\\`ls /\\`\""},
-		{`c:\dir`, `"c:\\dir"`},
-	}
-	for _, st := range cmds {
-		c.Assert(escapeTextForShell(st[0]), check.Equals, st[1])
+func (p *mockBackgroundProcess) Running() bool {
+	return p.running
+}
+
+func newMockServiceCommand() *serviceCommand {
+	return &serviceCommand{
+		s: &service{
+			ap: &mockBackgroundProcess{},
+		},
 	}
 }
 
 func (s *S) TestGetConfiguration(c *check.C) {
 	// Check it we get a valid JSON as configuration
-	req, err := http.NewRequest(http.MethodGet, configurationV1Uri, nil)
+	req, err := http.NewRequest(http.MethodGet, "/v1/configuration", nil)
 	c.Assert(err, check.IsNil)
 
 	rec := httptest.NewRecorder()
 
-	getConfiguration(rec, req)
+	cmd := newMockServiceCommand()
+	getConfiguration(cmd, rec, req)
 
 	body, err := ioutil.ReadAll(rec.Body)
 	c.Assert(err, check.IsNil)
@@ -110,14 +96,15 @@ func (s *S) TestNoDefaultConfiguration(c *check.C) {
 	os.Setenv("SNAP", "/nodir")
 	os.Setenv("SNAP_DATA", "/tmp")
 
-	req, err := http.NewRequest(http.MethodPost, configurationV1Uri, nil)
+	req, err := http.NewRequest(http.MethodPost, "/v1/configuration", nil)
 	c.Assert(err, check.IsNil)
 
 	rec := httptest.NewRecorder()
+	cmd := newMockServiceCommand()
 
 	validTokens = nil
 
-	changeConfiguration(rec, req)
+	postConfiguration(cmd, rec, req)
 
 	c.Assert(rec.Code, check.Equals, http.StatusInternalServerError)
 
@@ -143,16 +130,17 @@ func (s *S) TestWriteError(c *check.C) {
 	// Test a non writable path:
 	os.Setenv("SNAP_DATA", "/nodir")
 
-	req, err := http.NewRequest(http.MethodPost, configurationV1Uri, nil)
+	req, err := http.NewRequest(http.MethodPost, "/v1/configuration", nil)
 	c.Assert(err, check.IsNil)
 
 	rec := httptest.NewRecorder()
+	cmd := newMockServiceCommand()
 
 	validTokens, err = loadValidTokens(filepath.Join(os.Getenv("SNAP"), "/conf/default-config"))
 	c.Assert(validTokens, check.NotNil)
 	c.Assert(err, check.IsNil)
 
-	changeConfiguration(rec, req)
+	postConfiguration(cmd, rec, req)
 
 	c.Assert(rec.Code, check.Equals, http.StatusInternalServerError)
 
@@ -175,12 +163,13 @@ func (s *S) TestWriteError(c *check.C) {
 func (s *S) TestInvalidJSON(c *check.C) {
 	// Test an invalid JSON
 	os.Setenv("SNAP_DATA", "/tmp")
-	req, err := http.NewRequest(http.MethodPost, configurationV1Uri, strings.NewReader("not a JSON content"))
+	req, err := http.NewRequest(http.MethodPost, "/v1/configuration", strings.NewReader("not a JSON content"))
 	c.Assert(err, check.IsNil)
 
 	rec := httptest.NewRecorder()
+	cmd := newMockServiceCommand()
 
-	changeConfiguration(rec, req)
+	postConfiguration(cmd, rec, req)
 
 	c.Assert(rec.Code, check.Equals, http.StatusInternalServerError)
 
@@ -214,17 +203,18 @@ func (s *S) TestInvalidToken(c *check.C) {
 	args, err := json.Marshal(values)
 	c.Assert(err, check.IsNil)
 
-	req, err := http.NewRequest(http.MethodPost, configurationV1Uri, bytes.NewReader(args))
+	req, err := http.NewRequest(http.MethodPost, "/v1/configuration", bytes.NewReader(args))
 	c.Assert(err, check.IsNil)
 
 	rec := httptest.NewRecorder()
+	cmd := newMockServiceCommand()
 
 	validTokens, err = loadValidTokens(filepath.Join(os.Getenv("SNAP"), "/conf/default-config"))
 	c.Assert(validTokens, check.NotNil)
 	c.Assert(err, check.IsNil)
 
 	// Do the request
-	changeConfiguration(rec, req)
+	postConfiguration(cmd, rec, req)
 
 	c.Assert(rec.Code, check.Equals, http.StatusInternalServerError)
 
@@ -246,6 +236,7 @@ func (s *S) TestInvalidToken(c *check.C) {
 func (s *S) TestChangeConfiguration(c *check.C) {
 	// Values to be used in the config
 	values := map[string]string{
+		"disabled":                 "0",
 		"wifi.security":            "wpa2",
 		"wifi.ssid":                "UbuntuAP",
 		"wifi.security-passphrase": "12345678",
@@ -255,17 +246,18 @@ func (s *S) TestChangeConfiguration(c *check.C) {
 	args, err := json.Marshal(values)
 	c.Assert(err, check.IsNil)
 
-	req, err := http.NewRequest(http.MethodPost, configurationV1Uri, bytes.NewReader(args))
+	req, err := http.NewRequest(http.MethodPost, "/v1/configuration", bytes.NewReader(args))
 	c.Assert(err, check.IsNil)
 
 	rec := httptest.NewRecorder()
+	cmd := newMockServiceCommand()
 
 	validTokens, err = loadValidTokens(filepath.Join(os.Getenv("SNAP"), "/conf/default-config"))
 	c.Assert(validTokens, check.NotNil)
 	c.Assert(err, check.IsNil)
 
 	// Do the request
-	changeConfiguration(rec, req)
+	postConfiguration(cmd, rec, req)
 
 	c.Assert(rec.Code, check.Equals, http.StatusOK)
 
@@ -293,6 +285,60 @@ func (s *S) TestChangeConfiguration(c *check.C) {
 			check.Equals, true)
 	}
 
+	// As we've set 'disabled' to '0' above the AP should be active
+	// now as the configuration post request will trigger an automatic
+	// restart of the relevant background processes.
+	c.Assert(cmd.s.ap.Running(), check.Equals, true)
+
 	// Don't leave garbage in /tmp
 	os.Remove(getConfigOnPath(os.Getenv("SNAP_DATA")))
+}
+
+func (s *S) TestGetStatusDefaultOk(c *check.C) {
+	req, err := http.NewRequest(http.MethodGet, "/v1/status", nil)
+	c.Assert(err, check.IsNil)
+
+	rec := httptest.NewRecorder()
+
+	cmd := newMockServiceCommand()
+
+	getStatus(cmd, rec, req)
+
+	body, err := ioutil.ReadAll(rec.Body)
+	c.Assert(err, check.IsNil)
+
+	var resp serviceResponse
+	err = json.Unmarshal(body, &resp)
+	c.Assert(err, check.IsNil)
+
+	c.Assert(resp.Status, check.Equals, http.StatusText(http.StatusOK))
+	c.Assert(resp.StatusCode, check.Equals, http.StatusOK)
+	c.Assert(resp.Type, check.Equals, "sync")
+
+	c.Assert(resp.Result["ap.active"], check.Equals, "0")
+}
+
+func (s *S) TestGetStatusReturnsCorrectApStatus(c *check.C) {
+	req, err := http.NewRequest(http.MethodGet, "/v1/status", nil)
+	c.Assert(err, check.IsNil)
+
+	rec := httptest.NewRecorder()
+
+	cmd := newMockServiceCommand()
+	cmd.s.ap.Start()
+
+	getStatus(cmd, rec, req)
+
+	body, err := ioutil.ReadAll(rec.Body)
+	c.Assert(err, check.IsNil)
+
+	var resp serviceResponse
+	err = json.Unmarshal(body, &resp)
+	c.Assert(err, check.IsNil)
+
+	c.Assert(resp.Status, check.Equals, http.StatusText(http.StatusOK))
+	c.Assert(resp.StatusCode, check.Equals, http.StatusOK)
+	c.Assert(resp.Type, check.Equals, "sync")
+
+	c.Assert(resp.Result["ap.active"], check.Equals, "1")
 }

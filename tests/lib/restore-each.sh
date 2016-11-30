@@ -21,7 +21,6 @@ rm -rf /var/snap/$SNAP_NAME/common/*
 rm -rf /var/snap/$SNAP_NAME/current/*
 # Depending on what the test did both services are not meant to be
 # running here.
-systemctl stop snap.wifi-ap.backend || true
 systemctl stop snap.wifi-ap.management-service || true
 
 # Drop any generated or modified netplan configuration files. The original
@@ -40,7 +39,5 @@ netplan generate
 netplan apply
 
 # Start services again now that the system is restored
-systemctl start snap.wifi-ap.backend
 systemctl start snap.wifi-ap.management-service
-wait_for_systemd_service snap.wifi-ap.backend
 wait_for_systemd_service snap.wifi-ap.management-service

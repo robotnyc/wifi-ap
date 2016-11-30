@@ -13,11 +13,15 @@ execute: |
     wait_for_systemd_service snap.wifi-ap.management-service
 
     # Default configuration will use wlan0 which we just created
-    /snap/bin/wifi-ap.config set disabled 0
     /snap/bin/wifi-ap.config set wifi.ssid 'Ubuntu👍'
+    /snap/bin/wifi-ap.config set disabled 0
 
-    systemctl restart snap.wifi-ap.backend
-    wait_for_systemd_service snap.wifi-ap.backend
+    # Wait for AP to become active
+    while ! /snap/bin/wifi-ap.status | grep 'ap.active: 1' ; do
+        sleep 0.5
+    done
+    # Give AP a bit more to settle until it's marked as active
+    sleep 3
 
     snap install wireless-tools
     snap connect wireless-tools:network-control core

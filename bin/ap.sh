@@ -39,10 +39,18 @@ if ! ifconfig $WIFI_INTERFACE ; then
 fi
 
 cleanup_on_exit() {
+	read HOSTAPD_PID <$SNAP_DATA/hostapd.pid
+	if [ -n "$HOSTAPD_PID" ] ; then
+		kill -TERM $HOSTAPD_PID || true
+		wait $HOSTAPD_PID
+	fi
+
 	read DNSMASQ_PID <$SNAP_DATA/dnsmasq.pid
-	# If dnsmasq is already gone don't error out here
-	kill -TERM $DNSMASQ_PID || true
-	wait $DNSMASQ_PID
+	if [ -n "$DNSMASQ_PID" ] ; then
+		# If dnsmasq is already gone don't error out here
+		kill -TERM $DNSMASQ_PID || true
+		wait $DNSMASQ_PID
+	fi
 
 	iface=$WIFI_INTERFACE
 	if [ "$WIFI_INTERFACE_MODE" = "virtual" ] ; then
@@ -56,17 +64,21 @@ cleanup_on_exit() {
 		sysctl -w net.ipv4.ip_forward=0
 	fi
 
-	if [ "$WIFI_INTERFACE_MODE" = "virtual" ] && does_interface_exist $iface ; then
-		$SNAP/bin/iw dev $iface del
-	fi
-
 	if is_nm_running ; then
 		# Hand interface back to network-manager. This will also trigger the
 		# auto connection process inside network-manager to get connected
 		# with the previous network.
 		$SNAP/bin/nmcli d set $iface managed yes
 	fi
+
+	if [ "$WIFI_INTERFACE_MODE" = "virtual" ] ; then
+		$SNAP/bin/iw dev $iface del
+	fi
 }
+
+# We need to install this right before we do anything to
+# ensure that we cleanup everything again when we termiante.
+trap cleanup_on_exit TERM
 
 iface=$WIFI_INTERFACE
 if [ "$WIFI_INTERFACE_MODE" = "virtual" ] ; then
@@ -139,7 +151,13 @@ if [ $SHARE_DISABLED -eq 0 ] ; then
 fi
 
 generate_dnsmasq_config $SNAP_DATA/dnsmasq.conf
-$SNAP/bin/dnsmasq -k -C $SNAP_DATA/dnsmasq.conf -l $SNAP_DATA/dnsmasq.leases -x $SNAP_DATA/dnsmasq.pid &
+$SNAP/bin/dnsmasq \
+	-k \
+	-C $SNAP_DATA/dnsmasq.conf \
+	-l $SNAP_DATA/dnsmasq.leases \
+	-x $SNAP_DATA/dnsmasq.pid \
+	-u root -g root \
+	&
 
 driver=$WIFI_HOSTAPD_DRIVER
 if [ "$driver" = "rtl8188" ] ; then
@@ -219,6 +237,10 @@ case "$WIFI_HOSTAPD_DRIVER" in
 esac
 
 # Startup hostapd with the configuration we've put in place
-$hostapd $EXTRA_ARGS $SNAP_DATA/hostapd.conf
+$hostapd $EXTRA_ARGS $SNAP_DATA/hostapd.conf &
+hostapd_pid=$!
+echo $hostapd_pid > $SNAP_DATA/hostapd.pid
+wait $hostapd_pid
+
 cleanup_on_exit
 exit 0
