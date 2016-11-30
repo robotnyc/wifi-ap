@@ -20,6 +20,7 @@ import (
 	"os"
 	"os/exec"
 	"syscall"
+	"sync"
 	"time"
 
 	"gopkg.in/tomb.v2"
@@ -30,6 +31,7 @@ type backgroundProcessImpl struct {
 	args    []string
 	command *exec.Cmd
 	tomb    *tomb.Tomb
+	mutex   sync.Mutex
 }
 
 // BackgroundProcess provides control over a process running in the
@@ -58,6 +60,8 @@ func (p *backgroundProcessImpl) Start() error {
 	if p.Running() {
 		return fmt.Errorf("Background process is already running")
 	}
+
+	p.mutex.Lock()
 
 	p.command = exec.Command(p.path, p.args...)
 	if p.command == nil {
@@ -91,6 +95,8 @@ func (p *backgroundProcessImpl) Start() error {
 	// Wait until the process is really started
 	_ = <-c
 
+	p.mutex.Unlock()
+
 	return nil
 }
 
@@ -123,6 +129,7 @@ func (p *backgroundProcessImpl) Stop() error {
 	if !p.Running() {
 		return nil
 	}
+	p.mutex.Lock()
 	timer := time.AfterFunc(10*time.Second, func() {
 		p.killProcess(syscall.SIGKILL)
 	})
@@ -130,6 +137,8 @@ func (p *backgroundProcessImpl) Stop() error {
 	p.tomb.Kill(nil)
 	p.tomb.Wait()
 	timer.Stop()
+	p.mutex.Unlock()
+	p.command = nil
 	return nil
 }
 
