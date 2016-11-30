@@ -15,7 +15,7 @@ restore: |
 
 execute: |
     # Start the automatic wizard, it must fail
-    ! /snap/bin/wifi-ap.setup-wizard wizard --auto
+    ! /snap/bin/wifi-ap.setup-wizard --auto
 
     # Check for a descriptive error message
-    /snap/bin/wifi-ap.setup-wizard wizard --auto 2>&1 |grep 'No free netmask found'
+    /snap/bin/wifi-ap.setup-wizard --auto 2>&1 |grep 'No free netmask found'

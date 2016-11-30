@@ -9,7 +9,7 @@ restore: |
 
 execute: |
     # Start the automatic wizard
-    /snap/bin/wifi-ap.setup-wizard wizard --auto
+    /snap/bin/wifi-ap.setup-wizard --auto
 
     # Check that we get good default values
     test "$(/snap/bin/wifi-ap.config get disabled)" = false

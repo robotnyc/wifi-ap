@@ -16,7 +16,7 @@ restore: |
 
 execute: |
     # Start the automatic wizard, it must fail
-    /snap/bin/wifi-ap.setup-wizard wizard --auto
+    /snap/bin/wifi-ap.setup-wizard --auto
 
     # Check for assigned IP on subnet 10.0.64.0/24
     test "$(/snap/bin/wifi-ap.config get wifi.address)" = 10.0.64.1
