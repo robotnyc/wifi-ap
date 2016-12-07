@@ -29,10 +29,10 @@ const (
 )
 
 type serviceResponse struct {
-	Result     map[string]string `json:"result"`
-	Status     string            `json:"status"`
-	StatusCode int               `json:"status-code"`
-	Type       string            `json:"type"`
+	Result     map[string]interface{} `json:"result"`
+	Status     string                 `json:"status"`
+	StatusCode int                    `json:"status-code"`
+	Type       string                 `json:"type"`
 }
 
 func getServiceConfigurationURI() string {

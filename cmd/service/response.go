@@ -33,10 +33,10 @@ import (
 */
 
 type serviceResponse struct {
-	Result     map[string]string `json:"result"`
-	Status     string            `json:"status"`
-	StatusCode int               `json:"status-code"`
-	Type       string            `json:"type"`
+	Result     map[string]interface{} `json:"result"`
+	Status     string                 `json:"status"`
+	StatusCode int                    `json:"status-code"`
+	Type       string                 `json:"type"`
 }
 
 func makeErrorResponse(code int, message, kind string) *serviceResponse {
@@ -44,14 +44,14 @@ func makeErrorResponse(code int, message, kind string) *serviceResponse {
 		Type:       "error",
 		Status:     http.StatusText(code),
 		StatusCode: code,
-		Result: map[string]string{
+		Result: map[string]interface{}{
 			"message": message,
 			"kind":    kind,
 		},
 	}
 }
 
-func makeResponse(status int, result map[string]string) *serviceResponse {
+func makeResponse(status int, result map[string]interface{}) *serviceResponse {
 	resp := &serviceResponse{
 		Type:       "sync",
 		Status:     http.StatusText(status),
@@ -60,7 +60,7 @@ func makeResponse(status int, result map[string]string) *serviceResponse {
 	}
 
 	if resp.Result == nil {
-		resp.Result = make(map[string]string)
+		resp.Result = make(map[string]interface{})
 	}
 
 	return resp

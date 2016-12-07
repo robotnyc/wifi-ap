@@ -50,7 +50,7 @@ func convertKeyToStorageFormat(key string) string {
 	return strings.Replace(newKey, "-", "_", -1)
 }
 
-func readConfigurationFile(filePath string, config map[string]string) (err error) {
+func readConfigurationFile(filePath string, config map[string]interface{}) (err error) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return nil
@@ -63,7 +63,15 @@ func readConfigurationFile(filePath string, config map[string]string) (err error
 		if line := scanner.Text(); len(line) != 0 && line[0] != '#' {
 			// Line must be in the KEY=VALUE format
 			if parts := strings.Split(line, "="); len(parts) == 2 {
-				value := unescapeTextByShell(parts[1])
+				raw_value := unescapeTextByShell(parts[1])
+				var value interface{}
+				if raw_value == "true" {
+					value = true
+				} else if raw_value == "false" {
+					value = false
+				} else {
+					value = raw_value
+				}
 				config[convertKeyToRepresentationFormat(parts[0])] = value
 			}
 		}
@@ -72,7 +80,7 @@ func readConfigurationFile(filePath string, config map[string]string) (err error
 	return nil
 }
 
-func readConfiguration(paths []string, config map[string]string) (err error) {
+func readConfiguration(paths []string, config map[string]interface{}) (err error) {
 	for _, location := range paths {
 		if readConfigurationFile(location, config) != nil {
 			return fmt.Errorf("Failed to read configuration file '%s'", location)
@@ -85,16 +93,16 @@ func readConfiguration(paths []string, config map[string]string) (err error) {
 // Escape shell special characters, avoid injection
 // eg. SSID set to "My AP$(nc -lp 2323 -e /bin/sh)"
 // to get a root shell
-func escapeTextForShell(input string) string {
-	if strings.ContainsAny(input, "\\\"'`$\n\t #") {
-		input = strings.Replace(input, `\`, `\\`, -1)
-		input = strings.Replace(input, `"`, `\"`, -1)
-		input = strings.Replace(input, "`", "\\`", -1)
-		input = strings.Replace(input, `$`, `\$`, -1)
-
-		input = `"` + input + `"`
+func escapeTextForShell(input interface{}) string {
+	data := fmt.Sprint(input)
+	if strings.ContainsAny(data, "\\\"'`$\n\t #") {
+		data = strings.Replace(data, `\`, `\\`, -1)
+		data = strings.Replace(data, `"`, `\"`, -1)
+		data = strings.Replace(data, "`", "\\`", -1)
+		data = strings.Replace(data, `$`, `\$`, -1)
+		data = `"` + data + `"`
 	}
-	return input
+	return data
 }
 
 // Do the reverse of escapeTextForShell() here

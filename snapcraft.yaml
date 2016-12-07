@@ -57,7 +57,7 @@ parts:
     snap:
       - $binaries
 
-  config:
+  client:
     plugin: go
     source: cmd/client
     snap:
@@ -66,7 +66,7 @@ parts:
       - golang-go-flags-dev
       - golang-github-gorilla-mux-dev
 
-  management-service:
+  service:
     plugin: go
     source: cmd/service
     snap:
