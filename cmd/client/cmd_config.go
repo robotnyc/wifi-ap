@@ -52,7 +52,7 @@ func (cmd *getCommand) Execute(args []string) error {
 	if len(args) == 1 {
 		wantedKey := args[0]
 		if val, ok := response.Result[wantedKey]; ok {
-			fmt.Fprintf(os.Stdout, "%s\n", val)
+			fmt.Fprintf(os.Stdout, "%v\n", val)
 		} else {
 			return fmt.Errorf("Config item '%s' does not exist", wantedKey)
 		}
