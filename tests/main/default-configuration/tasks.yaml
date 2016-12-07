@@ -1,12 +1,12 @@
 summary: Verify snap has correct default configuration
 
 execute: |
-    test `/snap/bin/wifi-ap.config get debug` -eq 0
-    test `/snap/bin/wifi-ap.config get disabled` -eq 1
+    test `/snap/bin/wifi-ap.config get debug` = false
+    test `/snap/bin/wifi-ap.config get disabled` = true
     test "`/snap/bin/wifi-ap.config get dhcp.lease-time`" = "12h"
     test "`/snap/bin/wifi-ap.config get dhcp.range-start`" = "10.0.60.3"
     test "`/snap/bin/wifi-ap.config get dhcp.range-stop`" = "10.0.60.20"
-    test `/snap/bin/wifi-ap.config get share.disabled` = 0
+    test `/snap/bin/wifi-ap.config get share.disabled` = false
     test "`/snap/bin/wifi-ap.config get share.network-interface`" = "eth0"
     test "`/snap/bin/wifi-ap.config get wifi.address`" = "10.0.60.1"
     test `/snap/bin/wifi-ap.config get wifi.channel` -eq 6

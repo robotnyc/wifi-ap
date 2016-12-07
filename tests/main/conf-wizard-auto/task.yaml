@@ -12,7 +12,7 @@ execute: |
     /snap/bin/wifi-ap.setup-wizard wizard --auto
 
     # Check that we get good default values
-    test "$(/snap/bin/wifi-ap.config get disabled)" = 0
+    test "$(/snap/bin/wifi-ap.config get disabled)" = false
 
     test "$(/snap/bin/wifi-ap.config get wifi.interface)" = wlan0
     test "$(/snap/bin/wifi-ap.config get wifi.security)" = open
@@ -24,8 +24,8 @@ execute: |
 
     default_route=$(ip route |awk '/default/{print$5}')
     if [ -n "$default_route" ]; then
-        test "$(/snap/bin/wifi-ap.config get share.disabled)" = 0
+        test "$(/snap/bin/wifi-ap.config get share.disabled)" = false
         test "$(/snap/bin/wifi-ap.config get share.network-interface)" = "$default_route"
     else
-        test "$(/snap/bin/wifi-ap.config get share.disabled)" = 1
+        test "$(/snap/bin/wifi-ap.config get share.disabled)" = true
     fi

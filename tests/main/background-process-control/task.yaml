@@ -14,17 +14,17 @@ restore: |
 execute: |
     # Verify first the management service is up and running
     /snap/bin/wifi-ap.config get
-    test "`/snap/bin/wifi-ap.config get disabled`" = "1"
+    test "`/snap/bin/wifi-ap.config get disabled`" = "true"
 
     # AP should be not active at this time as still disabled
-    /snap/bin/wifi-ap.status | grep "ap.active: 0"
+    /snap/bin/wifi-ap.status | grep "ap.active: false"
 
     # Now start the AP and ensure its reported as active
-    /snap/bin/wifi-ap.config set disabled 0
-    /snap/bin/wifi-ap.status | grep "ap.active: 1"
+    /snap/bin/wifi-ap.config set disabled false
+    /snap/bin/wifi-ap.status | grep "ap.active: true"
     # And if we wait a bit more it should be still active
     sleep 5
-    /snap/bin/wifi-ap.status | grep "ap.active: 1"
+    /snap/bin/wifi-ap.status | grep "ap.active: true"
 
     # Scan for networks on the other side of the WiFi network
     # and ensure the network is available.
@@ -35,12 +35,12 @@ execute: |
     /snap/bin/wifi-ap.status restart-ap
     # Restart needs some time 
     sleep 5
-    /snap/bin/wifi-ap.status | grep "ap.active: 1"
+    /snap/bin/wifi-ap.status | grep "ap.active: true"
     /snap/bin/wireless-tools.iw dev wlan1 scan | grep 'SSID: Ubuntu'
 
     # If we now stop the management-service the hostapd and dnsmasq
     # instances should go away.
     systemctl stop snap.wifi-ap.management-service
-    while /snap/bin/wifi-ap.status | grep "ap.active: 1" ; do
+    while /snap/bin/wifi-ap.status | grep "ap.active: true" ; do
         sleep 0.5
     done
