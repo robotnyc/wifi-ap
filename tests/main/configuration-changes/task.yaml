@@ -5,10 +5,10 @@ execute: |
     /snap/bin/wifi-ap.config set wifi.interface wlan1
     test "`/snap/bin/wifi-ap.config get wifi.interface`" = "wlan1"
 
-    test `/snap/bin/wifi-ap.config get disabled` -eq true
+    test `/snap/bin/wifi-ap.config get disabled` = true
     /snap/bin/wifi-ap.config set disabled false
     # Verify 'disabled' was safed and change to 'wifi.interface' is still there
-    test `/snap/bin/wifi-ap.config get disabled` -eq false
+    test `/snap/bin/wifi-ap.config get disabled` = false
     test "`/snap/bin/wifi-ap.config get wifi.interface`" = "wlan1"
 
     ! /snap/bin/wifi-ap.config set
