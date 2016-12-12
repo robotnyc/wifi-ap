@@ -27,9 +27,10 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"log"
 )
 
-type wizardStep func(map[string]string, *bufio.Reader, bool) error
+type wizardStep func(map[string]interface{}, *bufio.Reader, bool) error
 
 // Go stores both IPv4 and IPv6 as [16]byte
 // with IPv4 addresses stored in the end of the buffer
@@ -99,7 +100,7 @@ func findFreeSubnet(startIp net.IP) (net.IP, error) {
 
 var allSteps = [...]wizardStep{
 	// determine the WiFi interface
-	func(configuration map[string]string, reader *bufio.Reader, nonInteractive bool) error {
+	func(configuration map[string]interface{}, reader *bufio.Reader, nonInteractive bool) error {
 		ifaces := findExistingInterfaces(true)
 		if len(ifaces) == 0 {
 			return fmt.Errorf("There are no valid wireless network interfaces available")
@@ -130,7 +131,7 @@ var allSteps = [...]wizardStep{
 	},
 
 	// Ask for WiFi ESSID
-	func(configuration map[string]string, reader *bufio.Reader, nonInteractive bool) error {
+	func(configuration map[string]interface{}, reader *bufio.Reader, nonInteractive bool) error {
 		if nonInteractive {
 			configuration["wifi.ssid"] = "Ubuntu"
 			return nil
@@ -147,7 +148,7 @@ var allSteps = [...]wizardStep{
 	},
 
 	// Select WiFi encryption type
-	func(configuration map[string]string, reader *bufio.Reader, nonInteractive bool) error {
+	func(configuration map[string]interface{}, reader *bufio.Reader, nonInteractive bool) error {
 		if nonInteractive {
 			configuration["wifi.security"] = "open"
 			return nil
@@ -167,7 +168,7 @@ var allSteps = [...]wizardStep{
 	},
 
 	// If WPA2 is set, ask for valid password
-	func(configuration map[string]string, reader *bufio.Reader, nonInteractive bool) error {
+	func(configuration map[string]interface{}, reader *bufio.Reader, nonInteractive bool) error {
 		if configuration["wifi.security"] == "open" {
 			return nil
 		}
@@ -182,7 +183,7 @@ var allSteps = [...]wizardStep{
 	},
 
 	// Configure WiFi AP IP address
-	func(configuration map[string]string, reader *bufio.Reader, nonInteractive bool) error {
+	func(configuration map[string]interface{}, reader *bufio.Reader, nonInteractive bool) error {
 		if nonInteractive {
 			wifiIp, err := findFreeSubnet(defaultIp)
 			if err != nil {
@@ -216,9 +217,9 @@ var allSteps = [...]wizardStep{
 	},
 
 	// Configure the DHCP pool
-	func(configuration map[string]string, reader *bufio.Reader, nonInteractive bool) error {
+	func(configuration map[string]interface{}, reader *bufio.Reader, nonInteractive bool) error {
 		if nonInteractive {
-			wifiIp := net.ParseIP(configuration["wifi.address"])
+			wifiIp := net.ParseIP(configuration["wifi.address"].(string))
 
 			// Set the DCHP in the range 2..199 with 198 total hosts
 			// leave about 50 hosts outside the pool for static addresses
@@ -232,7 +233,7 @@ var allSteps = [...]wizardStep{
 		}
 
 		var maxpoolsize byte
-		ipv4 := net.ParseIP(configuration["wifi.address"])
+		ipv4 := net.ParseIP(configuration["wifi.address"].(string))
 		if ipv4[ipv4Offset+3] <= 128 {
 			maxpoolsize = 254 - ipv4[ipv4Offset+3]
 		} else {
@@ -267,18 +268,18 @@ var allSteps = [...]wizardStep{
 	},
 
 	// Enable or disable connection sharing
-	func(configuration map[string]string, reader *bufio.Reader, nonInteractive bool) error {
+	func(configuration map[string]interface{}, reader *bufio.Reader, nonInteractive bool) error {
 		if nonInteractive {
-			configuration["share.disabled"] = "0"
+			configuration["share.disabled"] = false
 			return nil
 		}
 
 		fmt.Print("Do you want to enable connection sharing? (y/n) ")
 		switch resp := strings.ToLower(readUserInput(reader)); resp {
 		case "y":
-			configuration["share.disabled"] = "0"
+			configuration["share.disabled"] = false
 		case "n":
-			configuration["share.disabled"] = "1"
+			configuration["share.disabled"] = true
 		default:
 			return fmt.Errorf("Invalid answer: %s", resp)
 		}
@@ -287,9 +288,9 @@ var allSteps = [...]wizardStep{
 	},
 
 	// Select the wired interface to share
-	func(configuration map[string]string, reader *bufio.Reader, nonInteractive bool) error {
+	func(configuration map[string]interface{}, reader *bufio.Reader, nonInteractive bool) error {
 		if nonInteractive {
-			configuration["share.disabled"] = "1"
+			configuration["share.disabled"] = true
 
 			procNetRoute, err := os.Open("/proc/net/route")
 			if err != nil {
@@ -308,7 +309,7 @@ var allSteps = [...]wizardStep{
 				// look for a 0 destination (0.0.0.0) which is our default route
 				if len(route) > 2 && route[1] == "00000000" {
 					fmt.Println("Selecting", route[0], "for connection sharing")
-					configuration["share.disabled"] = "0"
+					configuration["share.disabled"] = false
 					configuration["share.network-interface"] = route[0]
 				}
 			}
@@ -316,14 +317,14 @@ var allSteps = [...]wizardStep{
 			return nil
 		}
 
-		if configuration["share.disabled"] == "1" {
+		if configuration["share.disabled"] == true {
 			return nil
 		}
 
 		ifaces := findExistingInterfaces(false)
 		if len(ifaces) == 0 {
 			fmt.Println("No network interface available which's connection can be shared. Disabling connection sharing.")
-			configuration["share.disabled"] = "1"
+			configuration["share.disabled"] = true
 			return nil
 		}
 		ifacesVerb := "are"
@@ -341,21 +342,21 @@ var allSteps = [...]wizardStep{
 		return nil
 	},
 
-	func(configuration map[string]string, reader *bufio.Reader, nonInteractive bool) error {
+	func(configuration map[string]interface{}, reader *bufio.Reader, nonInteractive bool) error {
 		if nonInteractive {
-			configuration["disabled"] = "0"
+			configuration["disabled"] = false
 			return nil
 		}
 
 		fmt.Print("Do you want to enable the AP now? (y/n) ")
 		switch resp := strings.ToLower(readUserInput(reader)); resp {
 		case "y":
-			configuration["disabled"] = "0"
+			configuration["disabled"] = false
 
 			fmt.Println("In order to get the AP correctly enabled you have to restart the backend service:")
 			fmt.Println(" $ systemctl restart snap.wifi-ap.backend")
 		case "n":
-			configuration["disabled"] = "1"
+			configuration["disabled"] = true
 		default:
 			return fmt.Errorf("Invalid answer: %s", resp)
 		}
@@ -365,7 +366,10 @@ var allSteps = [...]wizardStep{
 }
 
 // Use the REST API to set the configuration
-func applyConfiguration(configuration map[string]string) error {
+func applyConfiguration(configuration map[string]interface{}) error {
+	for key, value := range configuration {
+		log.Printf("%v=%v\n", key, value)
+	}
 	json, err := json.Marshal(configuration)
 	if err != nil {
 		return err
@@ -390,7 +394,7 @@ type wizardCommand struct {
 
 func (cmd *wizardCommand) Execute(args []string) error {
 	// Setup some sane default values, we don't ask the user for everything
-	configuration := map[string]string{}
+	configuration := make(map[string]interface{})
 
 	reader := bufio.NewReader(os.Stdin)
 
