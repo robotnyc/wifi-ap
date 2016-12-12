@@ -83,7 +83,7 @@ func postConfiguration(c *serviceCommand, writer http.ResponseWriter, request *h
 		return
 	}
 
-	var items map[string]string
+	var items map[string]interface{}
 	if err = json.Unmarshal(body, &items); err != nil {
 		resp := makeErrorResponse(http.StatusInternalServerError, "Malformed request", "internal-error")
 		sendHTTPResponse(writer, resp)
