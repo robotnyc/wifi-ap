@@ -29,7 +29,7 @@ func (cmd *setCommand) Execute(args []string) error {
 		return fmt.Errorf("usage: %s set <key> <value>\n", os.Args[0])
 	}
 
-	request := make(map[string]string)
+	request := make(map[string]interface{})
 	request[args[0]] = args[1]
 	b, err := json.Marshal(request)
 
