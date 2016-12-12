@@ -14,22 +14,27 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-set -x
-
 if [ $(id -u) -ne 0 ] ; then
 	echo "ERROR: $0 needs to be executed as root!"
 	exit 1
 fi
 
 . $SNAP/bin/config-internal.sh
-. $SNAP/bin/helper.sh
 
-DEFAULT_ACCESS_POINT_INTERFACE="ap0"
+if [ $DEBUG = "true" ]; then
+	set -x
+fi
+
+# Now after we have enabled debugging or not we can safely load
+# all others necessary bits.
+. $SNAP/bin/helper.sh
 
 if [ $DISABLED = "true" ] ; then
 	echo "Not starting as WiFi AP is disabled"
 	exit 0
 fi
+
+DEFAULT_ACCESS_POINT_INTERFACE="ap0"
 
 # Make sure the configured WiFi interface is really available before
 # doing anything.
