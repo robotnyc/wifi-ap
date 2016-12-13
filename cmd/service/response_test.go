@@ -22,7 +22,7 @@ import (
 
 func (s *S) TestMakeErrorResponse(c *check.C) {
 	resp := makeErrorResponse(http.StatusInternalServerError, "my error message", "internal-error")
-	c.Assert(resp.Result, check.DeepEquals, map[string]string{
+	c.Assert(resp.Result, check.DeepEquals, map[string]interface{}{
 		"message": "my error message",
 		"kind":    "internal-error",
 	})
@@ -33,12 +33,12 @@ func (s *S) TestMakeErrorResponse(c *check.C) {
 
 func (s *S) TestMakeResponse(c *check.C) {
 	resp := makeResponse(http.StatusOK, nil)
-	c.Assert(resp.Result, check.DeepEquals, map[string]string{})
+	c.Assert(resp.Result, check.DeepEquals, map[string]interface{}{})
 	c.Assert(resp.Status, check.Equals, "OK")
 	c.Assert(resp.StatusCode, check.Equals, http.StatusOK)
 	c.Assert(resp.Type, check.Equals, "sync")
 
-	data := map[string]string{"foo": "bar"}
+	data := map[string]interface{}{"foo": "bar"}
 	resp = makeResponse(http.StatusOK, data)
 	c.Assert(resp.Result, check.DeepEquals, data)
 	c.Assert(resp.Status, check.Equals, "OK")

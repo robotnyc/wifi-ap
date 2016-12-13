@@ -11,7 +11,7 @@ execute: |
     . $TESTSLIB/utilities.sh
 
     # Default configuration will use wlan0 which we just created
-    /snap/bin/wifi-ap.config set disabled 0
+    /snap/bin/wifi-ap.config set disabled false
 
     snap install wireless-tools
     snap connect wireless-tools:network-control core

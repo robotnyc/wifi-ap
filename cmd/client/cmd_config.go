@@ -29,7 +29,7 @@ func (cmd *setCommand) Execute(args []string) error {
 		return fmt.Errorf("usage: %s set <key> <value>\n", os.Args[0])
 	}
 
-	request := make(map[string]string)
+	request := make(map[string]interface{})
 	request[args[0]] = args[1]
 	b, err := json.Marshal(request)
 
@@ -52,7 +52,7 @@ func (cmd *getCommand) Execute(args []string) error {
 	if len(args) == 1 {
 		wantedKey := args[0]
 		if val, ok := response.Result[wantedKey]; ok {
-			fmt.Fprintf(os.Stdout, "%s\n", val)
+			fmt.Fprintf(os.Stdout, "%v\n", val)
 		} else {
 			return fmt.Errorf("Config item '%s' does not exist", wantedKey)
 		}

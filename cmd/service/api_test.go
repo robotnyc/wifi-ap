@@ -315,7 +315,7 @@ func (s *S) TestGetStatusDefaultOk(c *check.C) {
 	c.Assert(resp.StatusCode, check.Equals, http.StatusOK)
 	c.Assert(resp.Type, check.Equals, "sync")
 
-	c.Assert(resp.Result["ap.active"], check.Equals, "0")
+	c.Assert(resp.Result["ap.active"], check.Equals, false)
 }
 
 func (s *S) TestGetStatusReturnsCorrectApStatus(c *check.C) {
@@ -340,5 +340,5 @@ func (s *S) TestGetStatusReturnsCorrectApStatus(c *check.C) {
 	c.Assert(resp.StatusCode, check.Equals, http.StatusOK)
 	c.Assert(resp.Type, check.Equals, "sync")
 
-	c.Assert(resp.Result["ap.active"], check.Equals, "1")
+	c.Assert(resp.Result["ap.active"], check.Equals, true)
 }

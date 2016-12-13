@@ -17,8 +17,8 @@ restore: |
 
 execute: |
     # Bring up the access point first
-    /snap/bin/wifi-ap.config set disabled 0
-    while ! /snap/bin/wifi-ap.status | grep "ap.active: 1" ; do
+    /snap/bin/wifi-ap.config set disabled false
+    while ! /snap/bin/wifi-ap.status | grep "ap.active: true" ; do
         sleep 0.5
     done
 
@@ -48,7 +48,7 @@ execute: |
     done
 
     # Wait for AP to be marked as active again
-    while ! /snap/bin/wifi-ap.status | grep "ap.active: 1" ; do
+    while ! /snap/bin/wifi-ap.status | grep "ap.active: true" ; do
         sleep 0.5
     done
 

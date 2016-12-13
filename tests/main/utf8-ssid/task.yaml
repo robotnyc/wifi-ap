@@ -14,10 +14,10 @@ execute: |
 
     # Default configuration will use wlan0 which we just created
     /snap/bin/wifi-ap.config set wifi.ssid 'Ubuntu👍'
-    /snap/bin/wifi-ap.config set disabled 0
+    /snap/bin/wifi-ap.config set disabled false
 
     # Wait for AP to become active
-    while ! /snap/bin/wifi-ap.status | grep 'ap.active: 1' ; do
+    while ! /snap/bin/wifi-ap.status | grep 'ap.active: true' ; do
         sleep 0.5
     done
     # Give AP a bit more to settle until it's marked as active

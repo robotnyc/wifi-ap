@@ -43,7 +43,7 @@ var (
 )
 
 func getConfiguration(c *serviceCommand, writer http.ResponseWriter, request *http.Request) {
-	config := make(map[string]string)
+	config := make(map[string]interface{})
 	if err := readConfiguration(configurationPaths, config); err == nil {
 		sendHTTPResponse(writer, makeResponse(http.StatusOK, config))
 	} else {
@@ -54,7 +54,7 @@ func getConfiguration(c *serviceCommand, writer http.ResponseWriter, request *ht
 
 func postConfiguration(c *serviceCommand, writer http.ResponseWriter, request *http.Request) {
 	path := getConfigOnPath(os.Getenv("SNAP_DATA"))
-	config := map[string]string{}
+	config := make(map[string]interface{})
 	if readConfiguration([]string{path}, config) != nil {
 		resp := makeErrorResponse(http.StatusInternalServerError,
 			"Failed to read existing configuration file", "internal-error")
@@ -83,7 +83,7 @@ func postConfiguration(c *serviceCommand, writer http.ResponseWriter, request *h
 		return
 	}
 
-	var items map[string]string
+	var items map[string]interface{}
 	if err = json.Unmarshal(body, &items); err != nil {
 		resp := makeErrorResponse(http.StatusInternalServerError, "Malformed request", "internal-error")
 		sendHTTPResponse(writer, resp)
@@ -127,11 +127,11 @@ func restartAccessPoint(c *serviceCommand) error {
 }
 
 func getStatus(c *serviceCommand, writer http.ResponseWriter, request *http.Request) {
-	status := make(map[string]string)
+	status := make(map[string]interface{})
 
-	status["ap.active"] = "0"
+	status["ap.active"] = false
 	if c.s.ap != nil && c.s.ap.Running() {
-		status["ap.active"] = "1"
+		status["ap.active"] = true
 	}
 
 	sendHTTPResponse(writer, makeResponse(http.StatusOK, status))

@@ -21,13 +21,13 @@ import (
 	"sort"
 )
 
-func printMapSorted(m map[string]string) {
+func printMapSorted(m map[string]interface{}) {
 	sortedKeys := make([]string, 0, len(m))
 	for key, _ := range m {
 		sortedKeys = append(sortedKeys, key)
 	}
 	sort.Strings(sortedKeys)
 	for _, k := range sortedKeys {
-		fmt.Fprintf(os.Stdout, "%s: %s\n", k, m[k])
+		fmt.Fprintf(os.Stdout, "%s: %v\n", k, m[k])
 	}
 }

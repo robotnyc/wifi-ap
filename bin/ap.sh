@@ -26,7 +26,7 @@ fi
 
 DEFAULT_ACCESS_POINT_INTERFACE="ap0"
 
-if [ $DISABLED -eq 1 ] ; then
+if [ $DISABLED = "true" ] ; then
 	echo "Not starting as WiFi AP is disabled"
 	exit 0
 fi
@@ -57,7 +57,7 @@ cleanup_on_exit() {
 		iface=$DEFAULT_ACCESS_POINT_INTERFACE
 	fi
 
-	if [ $SHARE_DISABLED -eq 0 ] ; then
+	if [ $SHARE_DISABLED = "false" ] ; then
 		# flush forwarding rules out
 		iptables --table nat --delete POSTROUTING --out-interface $SHARE_NETWORK_INTERFACE -j MASQUERADE
 		iptables --delete FORWARD --in-interface $iface -j ACCEPT
@@ -143,7 +143,7 @@ fi
 ifconfig $iface $WIFI_ADDRESS netmask $WIFI_NETMASK
 sleep 2
 
-if [ $SHARE_DISABLED -eq 0 ] ; then
+if [ $SHARE_DISABLED = "false" ] ; then
 	# Enable NAT to forward our network connection
 	iptables --table nat --append POSTROUTING --out-interface $SHARE_NETWORK_INTERFACE -j MASQUERADE
 	iptables --append FORWARD --in-interface $iface -j ACCEPT
@@ -222,7 +222,7 @@ case "$WIFI_SECURITY" in
 esac
 
 EXTRA_ARGS=
-if [ "$DEBUG" = "1" ] ; then
+if [ "$DEBUG" = "true" ] ; then
 	EXTRA_ARGS="$EXTRA_ARGS -ddd -t"
 fi
 
