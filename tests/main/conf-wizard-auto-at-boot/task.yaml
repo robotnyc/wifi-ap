@@ -1,8 +1,6 @@
 summary: Verify that the automatic wizard works
 
 execute: |
-    # The automatic wizard was already started
-
     # Check that we get good default values
     test "$(/snap/bin/wifi-ap.config get disabled)" = false
 

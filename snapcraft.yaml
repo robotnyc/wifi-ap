@@ -31,6 +31,11 @@ apps:
       - network-control
       - firewall-control
       - network-manager
+  automatic-setup:
+    command: bin/automatic-setup.sh
+    daemon: simple
+    plugs:
+      - network
 
 parts:
   common:
@@ -41,6 +46,7 @@ parts:
       - bin/config-internal.sh
       - bin/ap.sh
       - bin/helper.sh
+      - bin/automatic-setup.sh
       - conf/default-config
 
   network-utils:

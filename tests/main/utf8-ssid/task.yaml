@@ -1,16 +1,7 @@
 summary: Verify that the AP can accept an UTF8 SSID
 
-prepare: |
-    # Simulate two WiFi radio network interfaces
-    modprobe mac80211_hwsim radios=2
-
-restore: |
-    rmmod mac80211_hwsim
-
 execute: |
     . $TESTSLIB/utilities.sh
-
-    wait_for_systemd_service snap.wifi-ap.management-service
 
     # Default configuration will use wlan0 which we just created
     /snap/bin/wifi-ap.config set wifi.ssid 'Ubuntu👍'

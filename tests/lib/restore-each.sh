@@ -22,6 +22,7 @@ rm -rf /var/snap/$SNAP_NAME/current/*
 # Depending on what the test did both services are not meant to be
 # running here.
 systemctl stop snap.wifi-ap.management-service || true
+wait_for_systemd_service_exit snap.wifi-ap.management-service
 
 # Drop any generated or modified netplan configuration files. The original
 # ones will be restored below.
@@ -41,3 +42,13 @@ netplan apply
 # Start services again now that the system is restored
 systemctl start snap.wifi-ap.management-service
 wait_for_systemd_service snap.wifi-ap.management-service
+
+# remove and reinsert the module to refresh all the wifi network settings
+rmmod mac80211_hwsim || true
+modprobe mac80211_hwsim radios=2
+wait_until_interface_is_available wlan0
+wait_until_interface_is_available wlan1
+
+# Wizard should run after snap install
+systemctl restart snap.wifi-ap.automatic-setup
+wait_for_systemd_service_exit snap.wifi-ap.automatic-setup

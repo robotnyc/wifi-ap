@@ -31,7 +31,7 @@ if [ -n "$SNAP_CHANNEL" ] ; then
 else
 	# Install prebuilt wifi-ap snap
 	snap install --dangerous /home/wifi-ap/wifi-ap_*_amd64.snap
-	# As we have a snap which we build locally its unasserted and therefor
+	# As we have a snap which we build locally it's unasserted and therefore
 	# we don't have any snap-declarations in place and need to manually
 	# connect all plugs.
 	snap connect wifi-ap:network-control core

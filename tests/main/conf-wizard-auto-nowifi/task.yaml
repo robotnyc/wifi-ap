@@ -1,8 +1,11 @@
 summary: Verify that wizard fails when there are no WiFi devices
 
+prepare: |
+    rmmod mac80211_hwsim
+
 execute: |
     # Start the automatic wizard, it must fail
-    ! /snap/bin/wifi-ap.setup-wizard wizard --auto
+    ! /snap/bin/wifi-ap.setup-wizard --auto
 
     # Check for a descriptive error message
-    /snap/bin/wifi-ap.setup-wizard wizard --auto 2>&1 |grep 'There are no valid wireless network interfaces available'
+    /snap/bin/wifi-ap.setup-wizard --auto 2>&1 |grep 'There are no valid wireless network interfaces available'

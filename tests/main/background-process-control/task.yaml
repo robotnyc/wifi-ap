@@ -1,27 +1,18 @@
 summary: Test correct service behavior to ensure the background AP process is running
 
 prepare: |
-    # Simulate two WiFi radio network interfaces
-    modprobe mac80211_hwsim radios=2
-
     # We need some tools for scanning etc.
     snap install wireless-tools
     snap connect wireless-tools:network-control core
 
-restore: |
-    rmmod mac80211_hwsim
-
 execute: |
     # Verify first the management service is up and running
     /snap/bin/wifi-ap.config get
-    test "`/snap/bin/wifi-ap.config get disabled`" = true
+    test "`/snap/bin/wifi-ap.config get disabled`" = false
 
     # AP should be not active at this time as still disabled
-    /snap/bin/wifi-ap.status | grep "ap.active: false"
-
-    # Now start the AP and ensure its reported as active
-    /snap/bin/wifi-ap.config set disabled false
     /snap/bin/wifi-ap.status | grep "ap.active: true"
+
     # And if we wait a bit more it should be still active
     sleep 5
     /snap/bin/wifi-ap.status | grep "ap.active: true"

@@ -1,9 +1,6 @@
 summary: Verify that the wizard is able to find an unused IP
 
 prepare: |
-    # Simulate a radio network interfaces
-    modprobe mac80211_hwsim radios=1
-
     # Dummy interface to assign an IP to
     modprobe dummy
 
@@ -12,11 +9,14 @@ prepare: |
     ifconfig dummy0 10.0.48.2/20
 
 restore: |
-    rmmod mac80211_hwsim dummy
+    rmmod dummy
 
 execute: |
-    # Start the automatic wizard, it must fail
-    /snap/bin/wifi-ap.setup-wizard wizard --auto
+    # Free the actual IP
+    ifconfig wlan0 0.0.0.0
+
+    # Start the automatic wizard
+    /snap/bin/wifi-ap.setup-wizard --auto
 
     # Check for assigned IP on subnet 10.0.64.0/24
     test "$(/snap/bin/wifi-ap.config get wifi.address)" = 10.0.64.1

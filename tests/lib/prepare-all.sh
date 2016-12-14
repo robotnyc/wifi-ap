@@ -12,6 +12,8 @@ if [ -e /home/wifi-ap/wifi-ap_*_amd64.snap ] ; then
 	exit 0
 fi
 
+# Simulate two WiFi radio network interfaces
+modprobe mac80211_hwsim radios=2
 
 # Setup classic snap and build the wifi-ap snap in there
 snap install --devmode --beta classic
