@@ -176,9 +176,14 @@ ssid=$WIFI_SSID
 auth_algs=1
 utf8_ssid=1
 hw_mode=$WIFI_OPERATION_MODE
+# DTIM 3 is a good tradeoff between powersave and latency
+dtim_period=3
+
 
 # The wmm_* options are needed to enable AMPDU
 # and get decent 802.11n throughput
+# UAPSD is for stations powersave
+uapsd_advertisement_enabled=1
 wmm_enabled=1
 wmm_ac_bk_cwmin=4
 wmm_ac_bk_cwmax=10
