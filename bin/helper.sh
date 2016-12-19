@@ -14,8 +14,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-set -x
-
 does_interface_exist() {
 	[ -d /sys/class/net/$1 ]
 }
