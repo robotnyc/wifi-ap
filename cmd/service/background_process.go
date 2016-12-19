@@ -19,8 +19,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"syscall"
 	"sync"
+	"syscall"
 	"time"
 
 	"gopkg.in/tomb.v2"

@@ -19,11 +19,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
+	"os"
+	"path/filepath"
 )
 
 const (
-	servicePort        = 5005
+	socketPathSuffix   = "sockets/control"
 	configurationV1Uri = "/v1/configuration"
 	statusV1Uri        = "/v1/status"
 )
@@ -36,11 +39,11 @@ type serviceResponse struct {
 }
 
 func getServiceConfigurationURI() string {
-	return fmt.Sprintf("http://localhost:%d%s", servicePort, configurationV1Uri)
+	return fmt.Sprintf("http://unix%s", configurationV1Uri)
 }
 
 func getServiceStatusURI() string {
-	return fmt.Sprintf("http://localhost:%d%s", servicePort, statusV1Uri)
+	return fmt.Sprintf("http://unix%s", statusV1Uri)
 }
 
 type doer interface {
@@ -48,6 +51,11 @@ type doer interface {
 }
 
 var customDoer doer
+
+func unixDialer(_, _ string) (net.Conn, error) {
+	path := filepath.Join(os.Getenv("SNAP_DATA"), socketPathSuffix)
+	return net.Dial("unix", path)
+}
 
 func sendHTTPRequest(uri string, method string, body io.Reader) (*serviceResponse, error) {
 	req, err := http.NewRequest(method, uri, body)
@@ -58,7 +66,11 @@ func sendHTTPRequest(uri string, method string, body io.Reader) (*serviceRespons
 	var resp *http.Response
 
 	if customDoer == nil {
-		client := &http.Client{}
+		client := &http.Client{
+			Transport: &http.Transport{
+				Dial: unixDialer,
+			},
+		}
 		resp, err = client.Do(req)
 	} else {
 		resp, err = customDoer.Do(req)

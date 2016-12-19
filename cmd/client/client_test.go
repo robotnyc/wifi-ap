@@ -66,7 +66,7 @@ func (s *ClientSuite) Do(req *http.Request) (*http.Response, error) {
 }
 
 func (s *ClientSuite) TestServiceConfigurationUriIsCorrect(c *check.C) {
-	c.Assert(getServiceConfigurationURI(), check.Equals, "http://localhost:5005/v1/configuration")
+	c.Assert(getServiceConfigurationURI(), check.Equals, "http://unix/v1/configuration")
 }
 
 func (s *ClientSuite) TestSendHTTPRequestWithSuccessfullResponse(c *check.C) {
