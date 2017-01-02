@@ -1,0 +1,16 @@
+summary: Verify that the exported content interface does work
+
+execute: |
+    # The automatic wizard was already started
+
+    # Make the consumer snap and install it
+    snapfile=wifiap-consumer_1.0_all.snap
+    cp /bin/nc consumer/bin/nc
+    mksquashfs consumer $snapfile -comp xz -no-xattrs -all-root
+    snap install --dangerous $snapfile
+
+    # Create the directory needed for the content interface bind mount
+    mkdir -p /var/snap/wifiap-consumer/current/sockets
+    snap connect wifiap-consumer:control wifi-ap:control
+
+    /snap/bin/wifiap-consumer.status

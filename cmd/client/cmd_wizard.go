@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net"
 	"net/http"
 	"os"
@@ -27,7 +28,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"log"
 )
 
 type wizardStep func(map[string]interface{}, *bufio.Reader, bool) error

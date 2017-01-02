@@ -1,0 +1,7 @@
+#!/bin/sh
+
+$SNAP/bin/nc -q1 -U $SNAP_DATA/sockets/control <<'EOF' |grep -q '^HTTP/1.1 200 OK'
+GET /v1/status HTTP/1.1
+Host: unix
+
+EOF

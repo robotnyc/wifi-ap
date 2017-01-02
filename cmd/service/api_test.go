@@ -234,6 +234,8 @@ func (s *S) TestInvalidToken(c *check.C) {
 }
 
 func (s *S) TestChangeConfiguration(c *check.C) {
+	os.Setenv("SNAP", "../..")
+
 	// Values to be used in the config
 	values := map[string]string{
 		"disabled":                 "0",

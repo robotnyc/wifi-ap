@@ -1,0 +1,15 @@
+name: wifiap-consumer
+version: 1.0
+summary: Basic wifiap consumer snap
+description: A basic snap declaring a plug on a wifi slot
+
+plugs:
+  control:
+    interface: content
+    content: socket-directory
+    target: $SNAP_DATA/sockets
+
+apps:
+  status:
+    command: bin/status
+    plugs: [control]

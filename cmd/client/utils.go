@@ -23,7 +23,7 @@ import (
 
 func printMapSorted(m map[string]interface{}) {
 	sortedKeys := make([]string, 0, len(m))
-	for key, _ := range m {
+	for key := range m {
 		sortedKeys = append(sortedKeys, key)
 	}
 	sort.Strings(sortedKeys)

@@ -29,10 +29,7 @@ import (
 	"gopkg.in/tomb.v2"
 )
 
-const (
-	serviceAddress = "127.0.0.1"
-	servicePort    = 5005
-)
+const socketPathSuffix = "sockets/control"
 
 type responceFunc func(*serviceCommand, http.ResponseWriter, *http.Request)
 
@@ -120,15 +117,21 @@ func (s *service) Run() error {
 		log.Println("Failed to read default configuration:", err)
 	}
 
-	addr := fmt.Sprintf("%s:%d", serviceAddress, servicePort)
-	s.server = &http.Server{Addr: addr, Handler: s.router}
-	s.listener, err = net.Listen("tcp", addr)
+	// Create the socket directory and remove any stale socket
+	path := filepath.Join(os.Getenv("SNAP_DATA"), socketPathSuffix)
+	if _, err := os.Stat(filepath.Dir(path)); os.IsNotExist(err) {
+		os.Mkdir(filepath.Dir(path), 0755)
+	}
+	os.Remove(path)
+
+	s.server = &http.Server{Handler: s.router}
+	s.listener, err = net.Listen("unix", path)
 	if err != nil {
 		return err
 	}
 
 	s.tomb.Go(func() error {
-		err := s.server.Serve(tcpKeepAliveListener{s.listener.(*net.TCPListener)})
+		err := s.server.Serve(s.listener)
 		if err != nil {
 			return fmt.Errorf("Failed to server HTTP: %s", err)
 		}

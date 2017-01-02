@@ -10,6 +10,13 @@ description: |
   https://code.launchpad.net/~snappy-hwe-team/snappy-hwe-snaps/+git/wifi-ap
 grade: stable
 
+slots:
+  control:
+    interface: content
+    content: socket-directory
+    write:
+      - $SNAP_DATA/sockets
+
 apps:
   config:
     command: bin/client config
