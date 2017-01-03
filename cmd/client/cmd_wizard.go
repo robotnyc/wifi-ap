@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math"
 	"net"
 	"net/http"
 	"os"
@@ -298,20 +299,47 @@ var allSteps = [...]wizardStep{
 			}
 			defer procNetRoute.Close()
 
+			var iface string
+			minMetric := math.MaxUint32
+
 			scanner := bufio.NewScanner(procNetRoute)
 			// Skip the first line with table header
 			scanner.Text()
 			for scanner.Scan() {
 				route := strings.Fields(scanner.Text())
-				// A /proc/net/route line is in the form: iface destination gateway ...
-				// eg.
+
+				if len(route) < 8 {
+					continue
+				}
+
+				// If we picked the interface already for the AP to operate on
+				// ignore it.
+				if route[0] == configuration["wifi.interface"] {
+					break
+				}
+
+				// A /proc/net/route line is in the form:
+				// iface destination gateway ...
 				// eth1 00000000 0155A8C0 ...
 				// look for a 0 destination (0.0.0.0) which is our default route
-				if len(route) > 2 && route[1] == "00000000" {
-					fmt.Println("Selecting", route[0], "for connection sharing")
-					configuration["share.disabled"] = false
-					configuration["share.network-interface"] = route[0]
+				metric, err := strconv.Atoi(route[7])
+				if err != nil {
+					metric = 0
 				}
+
+				if route[1] == "00000000" && metric < minMetric {
+					iface = route[0]
+					minMetric = metric
+					break
+				}
+			}
+
+			if len(iface) == 0 {
+				configuration["share.disabled"] = true
+			} else {
+				fmt.Println("Selecting", iface, "for connection sharing")
+				configuration["share.disabled"] = false
+				configuration["share.network-interface"] = iface
 			}
 
 			return nil

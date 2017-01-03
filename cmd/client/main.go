@@ -16,7 +16,9 @@
 package main
 
 import (
+	"fmt"
 	"os"
+	"os/user"
 
 	"github.com/jessevdk/go-flags"
 )
@@ -36,6 +38,17 @@ func addCommand(name string, shortHelp string, longHelp string, data interface{}
 }
 
 func main() {
+	user, err := user.Current()
+	if err == nil {
+		if user.Uid != "0" {
+			fmt.Println("ERROR: You need to execute this command as root to be allowed to")
+			fmt.Println("talk to the service. Run")
+			fmt.Println(" $ sudo wifi-ap.config get")
+			fmt.Println("for example.")
+			os.Exit(1)
+		}
+	}
+
 	if _, err := parser.Parse(); err != nil {
 		os.Exit(1)
 	}
