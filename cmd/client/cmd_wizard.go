@@ -299,7 +299,6 @@ var allSteps = [...]wizardStep{
 			}
 			defer procNetRoute.Close()
 
-
 			var iface string
 			minMetric := math.MaxUint32
 
@@ -311,6 +310,12 @@ var allSteps = [...]wizardStep{
 
 				if len(route) < 8 {
 					continue
+				}
+
+				// If we picked the interface already for the AP to operate on
+				// ignore it.
+				if route[0] == configuration["wifi.interface"] {
+					break
 				}
 
 				// A /proc/net/route line is in the form:
