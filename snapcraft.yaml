@@ -1,5 +1,5 @@
 name: wifi-ap
-version: 10
+version: 11
 confinement: strict
 summary: WiFi Access Point based on hostapd
 description: |
