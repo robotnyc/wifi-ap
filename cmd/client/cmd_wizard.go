@@ -21,7 +21,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"math"
 	"net"
 	"net/http"
 	"os"
@@ -300,7 +299,10 @@ var allSteps = [...]wizardStep{
 			defer procNetRoute.Close()
 
 			var iface string
-			minMetric := math.MaxUint32
+			// Using something like math.MaxUint32 causes an overflow on
+			// some architectures so lets use just a high enough value
+			// for typical systems here.
+			minMetric := 100000
 
 			scanner := bufio.NewScanner(procNetRoute)
 			// Skip the first line with table header
