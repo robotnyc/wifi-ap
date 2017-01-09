@@ -4,8 +4,7 @@ execute: |
     . $TESTSLIB/utilities.sh
 
     # Default configuration will use wlan0 which we just created
-    /snap/bin/wifi-ap.config set wifi.ssid 'Ubuntu👍'
-    /snap/bin/wifi-ap.config set disabled false
+    /snap/bin/wifi-ap.config set 'wifi.ssid=Ubuntu👍' disabled=false
 
     # Wait for AP to become active
     while ! /snap/bin/wifi-ap.status | grep 'ap.active: true' ; do
