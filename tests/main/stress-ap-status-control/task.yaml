@@ -11,7 +11,7 @@ prepare: |
 
 execute: |
     # Bring up the access point first
-    /snap/bin/wifi-ap.config set disabled false
+    /snap/bin/wifi-ap.config set disabled=false
     while ! /snap/bin/wifi-ap.status | grep "ap.active: true" ; do
         sleep 0.5
     done

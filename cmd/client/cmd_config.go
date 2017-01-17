@@ -20,17 +20,25 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 )
 
 type setCommand struct{}
 
 func (cmd *setCommand) Execute(args []string) error {
-	if len(args) != 2 {
-		return fmt.Errorf("usage: %s set <key> <value>\n", os.Args[0])
+	if len(args) < 1 {
+		return fmt.Errorf("usage: %s set key1=value1 key2=value2 ...\n", os.Args[0])
 	}
 
-	request := make(map[string]interface{})
-	request[args[0]] = args[1]
+	request := make(map[string]string, len(args))
+	for _, arg := range args {
+		i := strings.IndexRune(arg, '=')
+		if i <= 0 {
+			return fmt.Errorf("%q is not in the key=val format", arg)
+		}
+		request[arg[:i]] = arg[i+1:]
+	}
+
 	b, err := json.Marshal(request)
 
 	_, err = sendHTTPRequest(getServiceConfigurationURI(), "POST", bytes.NewReader(b))

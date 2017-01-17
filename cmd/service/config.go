@@ -62,17 +62,15 @@ func readConfigurationFile(filePath string, config map[string]interface{}) (err 
 		// Ignore all empty or commented lines
 		if line := scanner.Text(); len(line) != 0 && line[0] != '#' {
 			// Line must be in the KEY=VALUE format
-			if parts := strings.Split(line, "="); len(parts) == 2 {
-				raw_value := unescapeTextByShell(parts[1])
-				var value interface{}
-				if raw_value == "true" {
+			if i := strings.IndexRune(line, '='); i > 0 {
+				var value interface{} = unescapeTextByShell(line[i+1:])
+				switch (value) {
+				case "true":
 					value = true
-				} else if raw_value == "false" {
+				case "false":
 					value = false
-				} else {
-					value = raw_value
 				}
-				config[convertKeyToRepresentationFormat(parts[0])] = value
+				config[convertKeyToRepresentationFormat(line[:i])] = value
 			}
 		}
 	}
