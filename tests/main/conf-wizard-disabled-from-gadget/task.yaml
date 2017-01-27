@@ -1,0 +1,46 @@
+summary: Verify the wizard can be disabled by default from a gadget snap
+
+# FIXME: This test needs to stay manual until a snap is in edge which
+# contains a configure hook. Otherwise the snap installation will
+# always fail.
+manual: true
+
+prepare: |
+    . $TESTSLIB/snap-names.sh
+    snap list | grep $gadget_name | awk '{print $2}' > /tmp/gadget_version
+
+restore: |
+    . $TESTSLIB/snap-names.sh
+    # Restore the original gadget snap so that any following tests don't suffer
+    # from our modified gadget.
+    original_revision=`cat /tmp/gadget_version`
+    current_revision=`snap list | grep $gadget_name | awk '{print $2}'`
+    if [ $current_revision -ne  $original_revision ]; then
+        snap revert --revision=$original_revision $gadget_name
+    fi
+
+execute: |
+    . $TESTSLIB/snap-names.sh
+    . $TESTSLIB/utilities.sh
+
+    snap remove wifi-ap
+    snap install --edge --devmode se-test-tools
+
+    # We need a custom gadget snap for this so lets fetch one from the store
+    # and modify it.
+    snap download --stable $gadget_name
+    /snap/bin/se-test-tools.unsquashfs -d gadget ${gadget_name}_*.snap
+    cat << EOF >> gadget/meta/gadget.yaml
+    defaults:
+      2rGgvyaY0CCzlWuKAPwFtCWrgwkM8lqS:
+        automatic-setup.disable: true
+    EOF
+    /snap/bin/se-test-tools.mksquashfs gadget $gadget_name.snap -comp xz -no-xattrs
+    snap install --dangerous $gadget_name.snap
+
+    # Applying default configuration from a gadget snap only works when the
+    # snap is installed and comes from the store. It's not possible for an
+    # unasserted snap to be configured with defaults from the gadget.
+    snap install --edge wifi-ap
+
+    test "$(snap get wifi-ap automatic-setup.disable)" = "true"

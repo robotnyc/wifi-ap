@@ -16,6 +16,8 @@
 
 set -x
 
+[ -f "$SNAP_COMMON/.block_auto_wizard" ] && exit 0
+
 [ -f "$SNAP_DATA/config" ] && exit 0
 
 while ! $SNAP/bin/client status; do

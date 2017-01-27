@@ -1,0 +1,32 @@
+summary: Verify the automatic wizard running on service startup can be blocked with a configuration option
+
+environment:
+    SNAP_COMMON: /var/snap/wifi-ap/common
+    SNAP_DATA: /var/snap/wifi-ap/current
+
+execute: |
+    # The service was already started so clean up everything
+    systemctl stop snap.wifi-ap.automatic-setup
+
+    rm -f $SNAP_DATA/config
+    rm -f $SNAP_COMMON/.block_auto_wizard
+
+    test "`snap get wifi-ap automatic-setup.disable`" = "false"
+
+    # Setting the configuration option should put the block in place
+    snap set wifi-ap automatic-setup.disable=true
+    test -e $SNAP_COMMON/.block_auto_wizard
+    test "`snap get wifi-ap automatic-setup.disable`" = "true"
+
+    # Starting the automatic setup service should not create a configuration
+    # file for the management service
+    systemctl start snap.wifi-ap.automatic-setup
+    test ! -e $SNAP_DATA/config
+
+    # Now lets disable the block again and ensure the automatic wizard works
+    # again as normal
+    snap set wifi-ap automatic-setup.disable=false
+    test ! -e $SNAP_COMMON/.block_auto_wizard
+    systemctl restart snap.wifi-ap.automatic-setup
+    sleep 1
+    test -e $SNAP_DATA/config

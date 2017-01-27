@@ -40,8 +40,11 @@ if [ ! -z "$snap" ] ; then
 	ubuntu_image_extra_args="--extra-snaps $snap"
 fi
 
+snap download --stable pc
+
 ubuntu-image \
 	--channel $channel \
+	--extra-snaps pc_*.snap \
 	-o $image_name \
 	--image-size 4G \
 	$ubuntu_image_extra_args \

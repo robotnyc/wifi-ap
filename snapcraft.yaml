@@ -45,6 +45,12 @@ apps:
       - network
 
 parts:
+  hooks:
+    plugin: dump
+    source: hooks
+    organize:
+      configure: meta/hooks/configure
+
   common:
     plugin: dump
     source: .
