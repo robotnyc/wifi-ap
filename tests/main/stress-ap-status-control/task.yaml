@@ -12,7 +12,7 @@ prepare: |
 execute: |
     # Bring up the access point first
     /snap/bin/wifi-ap.config set disabled=false
-    while ! /snap/bin/wifi-ap.status | grep "ap.active: true" ; do
+    until /snap/bin/wifi-ap.status | grep "ap.active: true" ; do
         sleep 0.5
     done
 
@@ -42,7 +42,7 @@ execute: |
     done
 
     # Wait for AP to be marked as active again
-    while ! /snap/bin/wifi-ap.status | grep "ap.active: true" ; do
+    until /snap/bin/wifi-ap.status | fgrep "ap.active: true" ; do
         sleep 0.5
     done
 
@@ -65,5 +65,5 @@ execute: |
 
     # We should only have one hostapd and one dnsmasq process at this time
     # (we have to ignore the grep'ing process as otherwise we get a count of 2)
-    test `ps axu | grep hostapd | grep -v grep | wc -l` -eq 1
-    test `ps axu | grep dnsmasq | grep -v grep | wc -l` -eq 1
+    test `pgrep -c hostapd` -eq 1
+    test `pgrep -c dnsmasq` -eq 1

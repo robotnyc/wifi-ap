@@ -25,6 +25,7 @@ execute: |
     # And we should get an IP address assigned over DHCP
     dhclient wlan1
     # IP Address and routing needs to be correct
-    ifconfig wlan1 | fgrep 'inet addr:10.0.60'
-    ip route | fgrep '10.0.60.0/24 dev wlan1'
-    ip route | fgrep 'default via 10.0.60.1 dev wlan1'
+    ifconfig wlan1 | fgrep 'inet addr:10.0.60.'
+    ip route >/tmp/routes.$$
+    fgrep '10.0.60.0/24 dev wlan1' /tmp/routes.$$
+    fgrep 'default via 10.0.60.1 dev wlan1' /tmp/routes.$$
