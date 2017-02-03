@@ -115,7 +115,7 @@ if [ "$(snap managed)" = "true" ]; then
 fi
 
 # no changes at all
-while ! snap changes ; do
+until snap changes ; do
 	echo "No changes yet, waiting"
 	sleep 1
 done
