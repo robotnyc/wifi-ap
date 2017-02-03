@@ -25,6 +25,7 @@ execute: |
     n=0
     found_ap=0
     while [ $n -lt $SCAN_ITERATIONS ] ; do
+        /snap/bin/wireless-tools.iw dev wlan1 scan
         if /snap/bin/wireless-tools.iw dev wlan1 scan | fgrep 'SSID: Ubuntu\xf0\x9f\x91\x8d'; then
             found_ap=1
             break
