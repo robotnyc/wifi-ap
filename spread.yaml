@@ -51,6 +51,8 @@ debug-each: |
   journalctl
   dmesg | grep DENIED || true
 
+kill-timeout: 1h
+
 suites:
     tests/main/:
         summary: Full-system tests for the wifi-ap snap
