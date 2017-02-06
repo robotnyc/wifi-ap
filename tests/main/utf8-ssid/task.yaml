@@ -1,10 +1,16 @@
 summary: Verify that the AP can accept an UTF8 SSID
 
+environment:
+    SCAN_ITERATIONS: 15
+
 execute: |
     . $TESTSLIB/utilities.sh
 
     # Default configuration will use wlan0 which we just created
     /snap/bin/wifi-ap.config set 'wifi.ssid=Ubuntu👍' disabled=false
+
+    # Ensure the wizard picked the right interface
+    test "`/snap/bin/wifi-ap.config get 'wifi.interface'`" = "wlan0"
 
     # Wait for AP to become active
     while ! /snap/bin/wifi-ap.status | grep 'ap.active: true' ; do
@@ -19,7 +25,18 @@ execute: |
     # Scan for existing WiFi networks and ensure our 'Ubuntu' one is part
     # of the result
     ifconfig wlan1 up
-    /snap/bin/wireless-tools.iw dev wlan1 scan | fgrep 'SSID: Ubuntu\xf0\x9f\x91\x8d'
+    n=0
+    found_ap=0
+    while [ $n -lt $SCAN_ITERATIONS ] ; do
+        /snap/bin/wireless-tools.iw dev wlan1 scan
+        if /snap/bin/wireless-tools.iw dev wlan1 scan | fgrep 'SSID: Ubuntu\xf0\x9f\x91\x8d'; then
+            found_ap=1
+            break
+        fi
+        sleep 1
+        n=$((n+1))
+    done
+    [ $found_ap -eq 1 ] || exit 1
 
     # There should be only a single network
     network_count=`/snap/bin/wireless-tools.iw dev wlan1 scan | fgrep -c 'SSID: Ubuntu\xf0\x9f\x91\x8d'`
