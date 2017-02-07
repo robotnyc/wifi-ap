@@ -16,6 +16,13 @@
 
 set -x
 
+# Wait for the snap to be successfully setup. This will only be true
+# when the snap is started the first time and the configure hook was
+# never called before.
+while [ ! -e $SNAP_COMMON/.setup_done ]; do
+    sleep 0.5
+done
+
 [ -f "$SNAP_COMMON/.block_auto_wizard" ] && exit 0
 
 [ -f "$SNAP_DATA/config" ] && exit 0
