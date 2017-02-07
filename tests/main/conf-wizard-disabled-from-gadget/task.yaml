@@ -32,6 +32,7 @@ execute: |
     /snap/bin/se-test-tools.unsquashfs -d gadget ${gadget_name}_*.snap
     cat << EOF >> gadget/meta/gadget.yaml
     defaults:
+      # Below snap ID matches the one assigned for wifi-ap in the Ubuntu Store
       2rGgvyaY0CCzlWuKAPwFtCWrgwkM8lqS:
         automatic-setup.disable: true
     EOF
@@ -43,4 +44,8 @@ execute: |
     # unasserted snap to be configured with defaults from the gadget.
     snap install --edge wifi-ap
 
-    test "$(snap get wifi-ap automatic-setup.disable)" = "true"
+    test "$(snap get wifi-ap automatic-setup.disable)" = true
+    test "$(/snap/bin/wifi-ap.config get disabled)" = true
+    /snap/bin/wifi-ap.status | grep "ap.active: false"
+    ! pgrep dnsmasq
+    ! pgrep hostapd

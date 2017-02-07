@@ -19,10 +19,25 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
+
+const snapSetupDoneFilePath = "/var/snap/wifi-ap/common/.setup_done"
 
 func main() {
 	s := &service{}
+
+	// Wait until the configure hook, which is called on snap
+	// installation, marked us as successfully setup. If we
+	// continue before that happen we will miss any initial
+	// configuration set via a gadget snap.
+	for {
+		_, err := os.Stat(snapSetupDoneFilePath)
+		if err == nil {
+			break
+		}
+		time.Sleep(time.Second/2)
+	}
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
