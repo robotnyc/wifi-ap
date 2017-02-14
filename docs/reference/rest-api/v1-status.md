@@ -1,21 +1,19 @@
 ---
 title: "/v1/configuration"
-table_of_contents: True
+table_of_contents: False
 ---
 
-# /v1/status
+## GET /v1/status
 
-# GET
-
-## Description
+### Description
 
 Retrieve various status information about the access point.
 
-## Parameters
+### Request
 
 None
 
-## Result
+### Response
 
 ```
 {
@@ -23,7 +21,7 @@ None
 }
 ```
 
-## Errors
+### Errors
 
 The following errors can occur:
 
@@ -31,7 +29,7 @@ The following errors can occur:
  * invalid-format
 
 
-## Example
+### Example
 
 ```
 $ sudo unixhttpc /var/snap/wifi-ap/current/sockets/control  /v1/status
@@ -45,13 +43,13 @@ $ sudo unixhttpc /var/snap/wifi-ap/current/sockets/control  /v1/status
 }
 ```
 
-# POST
+## POST /v1/status
 
-## Description
+### Description
 
 Change the status of the access point.
 
-## Parameters
+### Request
 
 ```
 {
@@ -68,7 +66,7 @@ Possible values are:
 | *restart-ap*  | Restart the Access Point |
 
 
-## Result
+### Response
 
 ```
 { }
@@ -76,7 +74,7 @@ Possible values are:
 
 The result does not contain any field.
 
-## Errors
+### Errors
 
 The following errors can occur:
 
@@ -84,7 +82,7 @@ The following errors can occur:
  * invalid-format
 
 
-## Example
+### Example
 
 ```
 $ sudo unixhttpc -d '{“action”:”restart-ap”}' /var/snap/wifi-ap/current/sockets/control /v1/status
