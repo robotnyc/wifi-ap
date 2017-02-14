@@ -1,8 +1,13 @@
+site_title: wifi-ap documentation
+site_logo_url: media/logo.png
 navigation:
-  - title: General
-    location: index.md
+  - title: Introduction
     children:
-      - title: Installation
+      - title: About wifi-ap
+        location: index.md
+  - title: Install & Configure
+    children:
+      - title: Install wifi-ap
         location: installation.md
       - title: Basic WiFi AP Setup
         location: basic-ap-setup.md
@@ -16,10 +21,16 @@ navigation:
         location: reference/commands.md
       - title: Configuration
         location: reference/configuration.md
-      - title: REST API
+      - title: API Documentation
         location: reference/rest-api.md
         children:
           - title: /v1/configuration
             location: reference/rest-api/v1-configuration.md
           - title: /v1/status
             location: reference/rest-api/v1-status.md
+  - title: Troubleshoot
+    children:
+      - title: FAQ
+        location: faq.md
+  - title: Release notes
+    location: release-notes.md
