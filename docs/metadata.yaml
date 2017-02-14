@@ -1,0 +1,25 @@
+navigation:
+  - title: General
+    location: index.md
+    children:
+      - title: Installation
+        location: installation.md
+      - title: Basic WiFi AP Setup
+        location: basic-ap-setup.md
+      - title: Running a secure Access Point
+        location: secure-access-point.md
+      - title: Simultaneous STA / AP Mode
+        location: simultaneous-sta-ap-mode.md
+  - title: Reference
+    children:
+      - title: Commands
+        location: reference/commands.md
+      - title: Configuration
+        location: reference/configuration.md
+      - title: REST API
+        location: reference/rest-api.md
+        children:
+          - title: /v1/configuration
+            location: reference/rest-api/v1-configuration.md
+          - title: /v1/status
+            location: reference/rest-api/v1-status.md
