@@ -34,3 +34,5 @@ navigation:
         location: faq.md
   - title: Release notes
     location: release-notes.md
+  - title: Report a Bug
+    location: report-bug.md
