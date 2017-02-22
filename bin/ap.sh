@@ -93,7 +93,12 @@ if [ "$WIFI_INTERFACE_MODE" = "virtual" ] ; then
 	# the same channel for our AP as otherwise the created AP
 	# will not work.
 	channel_in_use=$($SNAP/bin/iw dev $WIFI_INTERFACE info |awk '/channel/{print$2}')
-	if [ "$channel_in_use" != "$WIFI_CHANNEL" ] ; then
+	if [ -z "$channel_in_use" ]; then
+		echo "WARNING: WiFi is currently not connected so we can't determine"
+		echo "         which channel we can use for the AP. This will most"
+		echo "         likely lead to failed connections when the STA gets"
+		echo "         connected."
+	elif [ "$channel_in_use" != "$WIFI_CHANNEL" ] ; then
 		echo "ERROR: You configured a different channel than the WiFi device"
 		echo "       is currently using. This will not work as most devices"
 		echo "       require you to operate for AP and STA on the same channel."
