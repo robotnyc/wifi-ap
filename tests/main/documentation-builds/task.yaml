@@ -5,7 +5,7 @@ execute: |
     # home which is outside of the home directory of our current user.
     snap install --devmode documentation-builder
 
-    outdir=`mktemp -d`
+    outdir=$PROJECT_PATH/docs/build
 
     cd $PROJECT_PATH/docs
     /snap/bin/documentation-builder --output-path $outdir
