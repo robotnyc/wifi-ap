@@ -1,0 +1,38 @@
+site_title: wifi-ap documentation
+site_logo_url: media/logo.png
+navigation:
+  - title: Introduction
+    children:
+      - title: About wifi-ap
+        location: index.md
+  - title: Install & Configure
+    children:
+      - title: Install wifi-ap
+        location: installation.md
+      - title: Basic WiFi AP Setup
+        location: basic-ap-setup.md
+      - title: Running a secure Access Point
+        location: secure-access-point.md
+      - title: Simultaneous STA / AP Mode
+        location: simultaneous-sta-ap-mode.md
+  - title: Reference
+    children:
+      - title: Commands
+        location: reference/commands.md
+      - title: Configuration
+        location: reference/configuration.md
+      - title: API Documentation
+        location: reference/rest-api.md
+        children:
+          - title: /v1/configuration
+            location: reference/rest-api/v1-configuration.md
+          - title: /v1/status
+            location: reference/rest-api/v1-status.md
+  - title: Troubleshoot
+    children:
+      - title: FAQ
+        location: faq.md
+  - title: Release notes
+    location: release-notes.md
+  - title: Report a Bug
+    location: report-bug.md
