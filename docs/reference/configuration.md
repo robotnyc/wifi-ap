@@ -5,16 +5,16 @@ table_of_contents: True
 
 # Configuration
 
-The WiFi Access Point service offers a wide range of customization options which
-can be modified through the builtin configuration system. This can be either done
+The WiFi access point service offers a wide range of customization options which
+can be modified through the built-in configuration system. This can be either done
 by the *wifi-ap.config* command line utility or directly via the REST API.
 
 The following describes all available configuration items.
 
 **NOTE:** All configuration items described here are not available through the
 snap configuration system yet. Both configuration approaches are currently
-orthogonal to each other and are used for different purposes. In the future we
-will most likely merge both in backward compatible way.
+orthogonal to each other and are used for different purposes. In the future,
+both approaches will most likely be merged in a backwards compatible manner.
 
 ## disabled
 

@@ -13,8 +13,8 @@ The API is versioned. Every endpoint is prefixed with a version number. For exam
 
 ## Connection
 
-The service will listen by default on an unix domain socket located in $SNAP_DATA/sockets/control inside the wifi-ap snap itself and provides a REST API endpoint.
-Another snap needs to use the content interface to get access to the unix domain socket. The plug it needs to declare can look like this:
+The service will listen by default on an unix domain socket located in $SNAP_DATA/sockets/control , inside the wifi-ap snap itself, and provides a REST API endpoint.
+Another snap needs to use the content interface to get access to the Unix domain socket. The plug it needs to declare can look like this:
 
 ```
 name: wifi-ap-example-consumer
@@ -32,10 +32,9 @@ Once the consuming snap is installed its plug needs to be connected to the wifi-
 ```
 $ snap connect wifi-ap-example-consumer:control wifi-ap:control
 ```
-
 The socket will be available as $SNAP_DATA/sockets/control within the wifi-ap-example-consumer snap.
 
-If you need a simple client to talk with the service you can use for example the unixhttpc tool to do raw HTTP queries.
+If you need a simple client to talk with the service, you can use, for example, the unixhttpc tool to do raw HTTP queries.
 
 ## Responses
 
@@ -44,7 +43,7 @@ All responses are application/json unless noted otherwise. There are two return 
  * Standard return value
  * Error
 
-Status codes follow that of HTTP. Standard operation responses are capable of returning additional meta data key/values as part of the returned JSON object.
+Status codes follow that of HTTP. Standard operation responses are capable of returning additional metadata key/values as part of the returned JSON object.
 
 ### Standard return value
 
@@ -59,11 +58,11 @@ For a standard synchronous operation, the following JSON object is returned:
 }
 ```
 
-The HTTP code will be 200 (OK), or 201 (Created, in which case the Location HTTP header will be set), as appropriate.
+The HTTP code will be 200 (OK), or 201 (created, in which case the Location HTTP header will be set), as appropriate.
 
 ### Error
 
-There are various situations in which something may immediately go wrong, in those cases, the following return value is used:
+There are various situations in which something may immediately go wrong. In those cases, the following return value is used:
 
 ```
 {

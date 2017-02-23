@@ -11,7 +11,7 @@ The wifi-ap snap will try to automatically configure the access point after inst
 $ wifi-ap.status
 ```
 
-if the automatic configuration was successfully and the access point is already active.
+if the automatic configuration was successful and the access point is already active.
 
 To enable the WiFi access point manually after the snap was installed and all plugs and slots are connected run the following command:
 

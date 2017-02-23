@@ -5,7 +5,7 @@ table_of_contents: True
 
 # Overview
 
-The wifi-ap snap is a solution to deploy a WiFi Access Point easily on any
+The wifi-ap snap is a solution to deploy a WiFi access point easily on any
 device capable of running snaps.
 
 The wifi-ap snap supports a set of features to cover generic WiFi access point use cases. It provides

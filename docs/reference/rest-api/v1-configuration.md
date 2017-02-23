@@ -13,7 +13,7 @@ Retrieve all available or a single configuration items and their current values.
 
 *keys* [optional]
 
-An array of config item keys to return the value for. If not supplied or empty all available configuration items will be returned.
+An array of config item keys to return the value for. If not supplied or empty, all available configuration items will be returned.
 
 ### Response
 
@@ -69,13 +69,13 @@ $ sudo unixhttpc /var/snap/wifi-ap/current/sockets/control /v1/configuration
 
 ### Description
 
-Change the value of one or multiple configuration items. When all configuration changes are applied the AP will be restarted and all currently connected clients are disconnected.
+Change the value of one or multiple configuration items. When all configuration changes are applied, the AP will be restarted and all currently connected clients are disconnected.
 
 ### Request
 
 A dictionary of key/value pairs corresponding to configuration items to change.
 
-If multiple key/value pairs are supplied as parameter the service will apply either all or nothing to ensure that the configuration stays in a known state.
+If multiple key/value pairs are supplied as parameter, the service will apply either all or nothing to ensure that the configuration stays in a known state.
 
 ### Result
 

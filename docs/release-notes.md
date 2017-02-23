@@ -5,7 +5,7 @@ table_of_contents: True
 
 # Release Notes
 
-The version numbers mentioned on this page correspond to those release in the
+The version numbers mentioned on this page correspond to those released in the
 Ubuntu snap store.
 
 ## 13

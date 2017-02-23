@@ -7,7 +7,7 @@ table_of_contents: True
 
 If your hardware and the kernel driver supports a simultaneous STA / AP mode you can stay connected to another access point while running your own. The only shortcoming here is that both have to operate on the same channel.
 
-You can find the current channel being used for the STA connection by looking at the STA network interface with the iw command.
+You may find the current channel being used for the STA connection by looking at the STA network interface with the iw command.
 
 To get the iw command available on an Ubuntu Core system install the wireless-tools snap from the store
 
