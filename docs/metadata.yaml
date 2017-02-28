@@ -21,6 +21,8 @@ navigation:
         location: reference/commands.md
       - title: Configuration
         location: reference/configuration.md
+      - title: Snap Configuration
+        location: reference/snap-configuration.md
       - title: API Documentation
         location: reference/rest-api.md
         children:
