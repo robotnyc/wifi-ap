@@ -1,5 +1,5 @@
 site_title: wifi-ap documentation
-site_logo_url: media/logo.png
+site_logo_url: https://assets.ubuntu.com/v1/c5cb0f8e-picto-ubuntu.svg
 navigation:
   - title: Introduction
     children:
