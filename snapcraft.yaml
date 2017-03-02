@@ -54,7 +54,7 @@ parts:
   common:
     plugin: dump
     source: .
-    snap:
+    prime:
       - copyright.hostapd
       - bin/config-internal.sh
       - bin/ap.sh
@@ -73,19 +73,19 @@ parts:
       binaries:
         - bin/iw
         - bin/iwconfig
-    snap:
+    prime:
       - $binaries
 
   client:
     plugin: go
     source: cmd/client
-    snap:
+    prime:
       - bin
 
   service:
     plugin: go
     source: cmd/service
-    snap:
+    prime:
       - bin
 
   dnsmasq:
@@ -102,7 +102,7 @@ parts:
     filesets:
       binaries:
         - bin/dnsmasq
-    snap:
+    prime:
       - $binaries
   hostapd:
     plugin: make
@@ -122,8 +122,9 @@ parts:
       binaries:
         - bin/hostapd
         - bin/hostapd_cli
-    snap:
+    prime:
       - $binaries
+
   hostapd-rtl8188:
     plugin: make
     source: https://git.launchpad.net/~snappy-hwe-team/snappy-hwe-snaps/+git/wifi-ap
@@ -141,8 +142,9 @@ parts:
     filesets:
       binaries:
         - rtl8188/hostapd
-    snap:
+    prime:
       - $binaries
+
   nmcli:
     plugin: nil
     stage-packages:
