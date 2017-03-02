@@ -45,16 +45,10 @@ apps:
       - network
 
 parts:
-  hooks:
-    plugin: dump
-    source: hooks
-    organize:
-      configure: meta/hooks/configure
-
   common:
     plugin: dump
     source: .
-    snap:
+    prime:
       - copyright.hostapd
       - bin/config-internal.sh
       - bin/ap.sh
@@ -73,26 +67,21 @@ parts:
       binaries:
         - bin/iw
         - bin/iwconfig
-    snap:
+    prime:
       - $binaries
-
-  client:
-    plugin: go
-    source: cmd/client
-    snap:
-      - bin
-    build-packages:
-      - golang-go-flags-dev
-      - golang-github-gorilla-mux-dev
 
   service:
     plugin: go
-    source: cmd/service
-    snap:
+    source: .
+    go-importpath: launchpad.net/wifi-ap
+    prime:
       - bin
-    build-packages:
-      - golang-github-gorilla-mux-dev
-      - golang-gopkg-tomb.v2-dev
+    install: |
+      export GOPATH=$PWD/../go
+      for d in client service ; do
+        cd $GOPATH/src/launchpad.net/wifi-ap/cmd/$d
+        go test -v
+      done
 
   dnsmasq:
     plugin: make
@@ -108,8 +97,9 @@ parts:
     filesets:
       binaries:
         - bin/dnsmasq
-    snap:
+    prime:
       - $binaries
+
   hostapd:
     plugin: make
     source: https://git.launchpad.net/~snappy-hwe-team/snappy-hwe-snaps/+git/wifi-ap
@@ -128,8 +118,9 @@ parts:
       binaries:
         - bin/hostapd
         - bin/hostapd_cli
-    snap:
+    prime:
       - $binaries
+
   hostapd-rtl8188:
     plugin: make
     source: https://git.launchpad.net/~snappy-hwe-team/snappy-hwe-snaps/+git/wifi-ap
@@ -147,8 +138,9 @@ parts:
     filesets:
       binaries:
         - rtl8188/hostapd
-    snap:
+    prime:
       - $binaries
+
   nmcli:
     plugin: nil
     stage-packages:
