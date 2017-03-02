@@ -70,17 +70,15 @@ parts:
     prime:
       - $binaries
 
-  client:
-    plugin: go
-    source: cmd/client
-    prime:
-      - bin
-
   service:
     plugin: go
-    source: cmd/service
+    source: .
+    go-importpath: launchpad.net/wifi-ap
     prime:
       - bin
+    install: |
+      go test launchpad.net/wifi-ap/cmd/client
+      go test launchpad.net/wifi-ap/cmd/service
 
   dnsmasq:
     plugin: make
@@ -98,6 +96,7 @@ parts:
         - bin/dnsmasq
     prime:
       - $binaries
+
   hostapd:
     plugin: make
     source: https://git.launchpad.net/~snappy-hwe-team/snappy-hwe-snaps/+git/wifi-ap
