@@ -16,7 +16,7 @@ if the automatic configuration was successful and the access point is already ac
 To enable the WiFi access point manually after the snap was installed and all plugs and slots are connected run the following command:
 
 ```
-$ wifi-ap.config set disabled=0
+$ wifi-ap.config set disabled=false
 ```
 
 This will mark the access point as being enabled.
