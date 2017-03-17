@@ -23,8 +23,6 @@ done
 echo "Kernel has a store revision"
 snap list | grep ^${kernel_name} | grep -E " [0-9]+\s+canonical"
 
-install_snap_under_test
-
 # Snapshot of the current snapd state for a later restore
 if [ ! -f $SPREAD_PATH/snapd-state.tar.gz ] ; then
 	systemctl stop snapd.service snapd.socket
