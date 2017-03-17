@@ -1,10 +1,5 @@
 summary: Verify the wizard can be disabled by default from a gadget snap
 
-# FIXME: This test needs to stay manual until a snap is in edge which
-# contains a configure hook. Otherwise the snap installation will
-# always fail.
-manual: true
-
 prepare: |
     . $TESTSLIB/snap-names.sh
     snap list | grep $gadget_name | awk '{print $2}' > /tmp/gadget_version
