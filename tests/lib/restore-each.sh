@@ -31,6 +31,10 @@ netplan generate
 netplan apply
 
 # remove and reinsert the module to refresh all the wifi network settings
+pkill wpa_supplicant || true
+while pidof wpa_supplicant; do
+	sleep .5
+done
 rmmod mac80211_hwsim || true
 modprobe mac80211_hwsim radios=2
 wait_until_interface_is_available wlan0

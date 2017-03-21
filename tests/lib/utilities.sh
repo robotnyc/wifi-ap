@@ -45,3 +45,25 @@ install_snap_under_test() {
 		snap connect wifi-ap:firewall-control core
 	fi
 }
+
+# Connects to a WiFi network
+# args1: interface to use
+connect_to_wifi() {
+	local enc ssid pass
+
+	enc=$(/snap/bin/wifi-ap.config get wifi.security)
+	ssid=$(/snap/bin/wifi-ap.config get wifi.ssid)
+	if [ "$enc" = open ]; then
+		iw "$1" connect "$ssid"
+	else
+		pass=$(/snap/bin/wifi-ap.config get wifi.security-passphrase)
+		wpa_passphrase "$ssid" "$pass" >/tmp/wpa.conf
+		wpa_supplicant -B -c/tmp/wpa.conf -i"$1"
+
+		# Need to wait for a full scan and WPA2 handshake
+		for i in $(seq 60); do
+			iw dev "$1" link |fgrep -xq 'Not connected.' || break
+			sleep 1
+		done
+	fi
+}

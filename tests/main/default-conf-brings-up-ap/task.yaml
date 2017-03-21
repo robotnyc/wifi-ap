@@ -14,12 +14,11 @@ execute: |
     # There should be only a single network
     network_count=`/snap/bin/wireless-tools.iw dev wlan1 scan | grep -c 'SSID: Ubuntu'`
     test $network_count -eq 1
-    # The AP should not be secured by default
-    ! /snap/bin/wireless-tools.iw dev wlan1 scan | grep 'WPA:'
-    ! /snap/bin/wireless-tools.iw dev wlan1 scan | grep 'RSN:'
+    # The AP should not be secured
+    /snap/bin/wireless-tools.iw dev wlan1 scan | grep 'RSN:'
 
     # Verify we can associate with the AP
-    /snap/bin/wireless-tools.iw wlan1 connect Ubuntu
+    connect_to_wifi wlan1
     /snap/bin/wireless-tools.iw dev wlan1 link | grep 'SSID: Ubuntu'
 
     # And we should get an IP address assigned over DHCP
