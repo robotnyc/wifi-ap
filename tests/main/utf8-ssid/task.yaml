@@ -7,7 +7,7 @@ execute: |
     . $TESTSLIB/utilities.sh
 
     # Default configuration will use wlan0 which we just created
-    /snap/bin/wifi-ap.config set 'wifi.ssid=Ubuntu👍' disabled=false
+    /snap/bin/wifi-ap.config set 'wifi.ssid=Ubuntu👍' debug=true
 
     # Ensure the wizard picked the right interface
     test "`/snap/bin/wifi-ap.config get 'wifi.interface'`" = "wlan0"

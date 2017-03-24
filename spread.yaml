@@ -60,5 +60,7 @@ suites:
             - ubuntu-core-16
         prepare: |
             . $TESTSLIB/prepare.sh
+        prepare-each: |
+            . $TESTSLIB/prepare-each.sh
         restore-each: |
             . $TESTSLIB/restore-each.sh
