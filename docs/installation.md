@@ -41,8 +41,8 @@ $ snap connect wifi-ap:network-manager network-manager:service
 |------|-------|
 | **WiFi SSID** | Ubuntu |
 | **WiFi Interface mode** | direct |
-| **WiFi Security** | open |
-| **WiFi Security Passphrase ** | |
+| **WiFi Security** | wpa2 |
+| **WiFi Security Passphrase ** | Randomly chosen |
 | **WiFi Channel** | 6 |
 | **WiFi Network Interface** | wlan0 |
 | **WiFi Address** | 192.168.7.1 |

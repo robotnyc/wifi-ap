@@ -10,6 +10,8 @@ prepare: |
     snap connect wireless-tools:network-control core
 
 execute: |
+    . $TESTSLIB/utilities.sh
+
     # Bring up the access point first
     /snap/bin/wifi-ap.config set disabled=false
     until /snap/bin/wifi-ap.status | grep "ap.active: true" ; do
@@ -60,8 +62,8 @@ execute: |
     test $found_ap -eq 1
 
     # Verify we can associate with the AP
-    sudo /snap/bin/wireless-tools.iw wlan1 connect Ubuntu
-    sudo /snap/bin/wireless-tools.iw dev wlan1 link | grep 'SSID: Ubuntu'
+    connect_to_wifi wlan1
+    /snap/bin/wireless-tools.iw dev wlan1 link | grep 'SSID: Ubuntu'
 
     # We should only have one hostapd and one dnsmasq process at this time
     # (we have to ignore the grep'ing process as otherwise we get a count of 2)

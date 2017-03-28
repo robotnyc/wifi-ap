@@ -1,0 +1,9 @@
+backends:
+  qemu:
+    systems:
+    - ubuntu-core-16:
+        username: test
+        password: test
+        address: localhost:59377
+        data:
+          pid: 22341

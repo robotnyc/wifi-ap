@@ -5,7 +5,9 @@ execute: |
     test "$(/snap/bin/wifi-ap.config get disabled)" = false
 
     test "$(/snap/bin/wifi-ap.config get wifi.interface)" = wlan0
-    test "$(/snap/bin/wifi-ap.config get wifi.security)" = open
+    test "$(/snap/bin/wifi-ap.config get wifi.security)" = wpa2
+    # Random 16 characters password, plus an ending line
+    test "$(/snap/bin/wifi-ap.config get wifi.security-passphrase |wc -c)" -eq 17
     test "$(/snap/bin/wifi-ap.config get wifi.ssid)" = Ubuntu
     test "$(/snap/bin/wifi-ap.config get wifi.address)" = 10.0.60.1
 

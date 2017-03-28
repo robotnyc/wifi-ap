@@ -18,9 +18,11 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/rand"
 	"net"
 	"net/http"
 	"os"
@@ -28,7 +30,10 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
+
+const DefaultPassworthLength = 16
 
 type wizardStep func(map[string]interface{}, *bufio.Reader, bool) error
 
@@ -40,7 +45,7 @@ const ipv4Offset = net.IPv6len - net.IPv4len
 var defaultIp = net.IPv4(10, 0, 60, 1)
 
 // Utility function to read input and strip the trailing \n
-func readUserInput(reader *bufio.Reader) string {
+var readUserInput = func (reader *bufio.Reader) string {
 	ret, err := reader.ReadString('\n')
 	if err != nil {
 		panic(err)
@@ -98,6 +103,22 @@ func findFreeSubnet(startIp net.IP) (net.IP, error) {
 	return curIp, nil
 }
 
+func generatePassword(length int) string {
+	// base64 produces 4 byte for every 3 byte of input, rounded up
+	password := make([]byte, length / 4 * 3 + 3)
+	rand.Read(password)
+	return base64.StdEncoding.EncodeToString(password)[:length]
+}
+
+func askForPassword(reader *bufio.Reader) (string, error) {
+	fmt.Print("Please enter the WPA2 passphrase: ")
+	key := readUserInput(reader)
+	if len(key) < 8 || len(key) > 63 {
+		return "", fmt.Errorf("WPA2 passphrase must be between 8 and 63 characters")
+	}
+	return key, nil
+}
+
 var allSteps = [...]wizardStep{
 	// determine the WiFi interface
 	func(configuration map[string]interface{}, reader *bufio.Reader, nonInteractive bool) error {
@@ -150,7 +171,7 @@ var allSteps = [...]wizardStep{
 	// Select WiFi encryption type
 	func(configuration map[string]interface{}, reader *bufio.Reader, nonInteractive bool) error {
 		if nonInteractive {
-			configuration["wifi.security"] = "open"
+			configuration["wifi.security"] = "wpa2"
 			return nil
 		}
 
@@ -172,12 +193,18 @@ var allSteps = [...]wizardStep{
 		if configuration["wifi.security"] == "open" {
 			return nil
 		}
-		fmt.Print("Please enter the WPA2 passphrase: ")
-		key := readUserInput(reader)
-		if len(key) < 8 || len(key) > 63 {
-			return fmt.Errorf("WPA2 passphrase must be between 8 and 63 characters")
+		if nonInteractive {
+			// Generate a random 16 characters alphanumeric password
+			configuration["wifi.security-passphrase"] = generatePassword(DefaultPassworthLength)
+			return nil
 		}
-		configuration["wifi.security-passphrase"] = key
+
+		// Ask the user for a valid password (min 8, max 63 chars)
+		if password, err := askForPassword(reader); err == nil {
+			configuration["wifi.security-passphrase"] = password
+		} else {
+			return err
+		}
 
 		return nil
 	},
@@ -423,6 +450,8 @@ type wizardCommand struct {
 }
 
 func (cmd *wizardCommand) Execute(args []string) error {
+	rand.Seed(time.Now().UnixNano())
+
 	// Setup some sane default values, we don't ask the user for everything
 	configuration := make(map[string]interface{})
 

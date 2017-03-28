@@ -43,6 +43,5 @@ execute: |
     test $network_count -eq 1
 
     # Verify we can associate with the AP
-    /snap/bin/wireless-tools.iw wlan1 connect 'Ubuntu👍'
+    connect_to_wifi wlan1
     /snap/bin/wireless-tools.iw dev wlan1 link | fgrep 'SSID: Ubuntu\xf0\x9f\x91\x8d'
-

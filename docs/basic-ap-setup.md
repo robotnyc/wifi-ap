@@ -13,6 +13,14 @@ $ wifi-ap.status
 
 if the automatic configuration was successful and the access point is already active.
 
+By default the automatic wizard, which runs when the wifi-ap snap is installed,
+will choose secure enough default password and will enable WPA2-PSK security.
+You can find the selected password when logged into
+the system the wifi-ap snap installed on by running the command:
+```
+$ sudo wifi-ap.config get wifi.security-passphrase
+```
+
 To enable the WiFi access point manually after the snap was installed and all plugs and slots are connected run the following command:
 
 ```
