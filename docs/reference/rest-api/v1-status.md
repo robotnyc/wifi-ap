@@ -32,7 +32,7 @@ The following errors can occur:
 ### Example
 
 ```
-$ sudo unixhttpc /var/snap/wifi-ap/current/sockets/control  /v1/status
+$ sudo wifi-ap-client /v1/status
 {
   “result”: {
      “ap.active”: “0”,
@@ -85,7 +85,7 @@ The following errors can occur:
 ### Example
 
 ```
-$ sudo unixhttpc -d '{“action”:”restart-ap”}' /var/snap/wifi-ap/current/sockets/control /v1/status
+$ sudo wifi-ap-client -d '{“action”:”restart-ap”}' /var/snap/wifi-ap/current/sockets/control /v1/status
 {
   “result”: { },
   “status”: “OK”,
