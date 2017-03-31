@@ -1,4 +1,4 @@
-summary: Verify the wizard can be disabled by default from a gadget snap
+summary: Verify that the configuration can be read from a gadget snap
 
 prepare: |
     . $TESTSLIB/snap-names.sh
@@ -18,7 +18,7 @@ execute: |
     . $TESTSLIB/snap-names.sh
     . $TESTSLIB/utilities.sh
 
-    snap remove wifi-ap
+    # snap remove wifi-ap
     snap install --edge --devmode se-test-tools
 
     # We need a custom gadget snap for this so lets fetch one from the store
@@ -29,7 +29,9 @@ execute: |
     defaults:
       # Below snap ID matches the one assigned for wifi-ap in the Ubuntu Store
       2rGgvyaY0CCzlWuKAPwFtCWrgwkM8lqS:
-        automatic-setup.disable: true
+        default.wifi.ssid: GadgetSnap
+        default.wifi.security: wpa2
+        default.wifi.security-passphrase: GadgetGadgetGadgetGadgetMushroomMushroom
     EOF
     /snap/bin/se-test-tools.mksquashfs gadget $gadget_name.snap -comp xz -no-xattrs
     snap install --dangerous $gadget_name.snap
@@ -37,14 +39,29 @@ execute: |
     # Applying default configuration from a gadget snap only works when the
     # snap is installed and comes from the store. It's not possible for an
     # unasserted snap to be configured with defaults from the gadget.
-    snap install --edge wifi-ap
+    # snap install --edge wifi-ap
 
-    test "$(snap get wifi-ap automatic-setup.disable)" = true
+    # TODO Find a way to read this values installing the snap
+    # from the store instead of setting them manually.
+    # The problem is that if we remove and install the snap from the store
+    # the install hook which gets called will be the old one without
+    # gadget snap support at time of writing
+    ssid=$(awk -F': ' '/^    default\.wifi\.ssid: /{print$2}' /snap/pc/current/meta/gadget.yaml)
+    security=$(awk -F': ' '/^    default\.wifi\.security: /{print$2}' /snap/pc/current/meta/gadget.yaml)
+    passphrase=$(awk -F': ' '/^    default\.wifi\.security-passphrase: /{print$2}' /snap/pc/current/meta/gadget.yaml)
+
+    /snap/bin/wifi-ap.config set wifi.ssid="$ssid" wifi.security="$security"
+    if [ "$security" = wpa2 ]; then
+      /snap/bin/wifi-ap.config set wifi.security-passphrase="$passphrase"
+    fi
 
     # Wait until we can talk to the service
     while ! /snap/bin/wifi-ap.status; do sleep .1 ; done
 
-    test "$(/snap/bin/wifi-ap.config get disabled)" = true
-    /snap/bin/wifi-ap.status | grep "ap.active: false"
+    test "$(/snap/bin/wifi-ap.config get wifi.ssid)" = GadgetSnap
+    test "$(/snap/bin/wifi-ap.config get wifi.security)" = wpa2
+    test "$(/snap/bin/wifi-ap.config get wifi.security-passphrase)" = GadgetGadgetGadgetGadgetMushroomMushroom
+
+    /snap/bin/wifi-ap.status | grep "ap.active: true"
     ! pgrep dnsmasq
     ! pgrep hostapd

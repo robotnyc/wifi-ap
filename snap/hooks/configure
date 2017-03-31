@@ -39,6 +39,16 @@ else
     snapctl set automatic-setup.disable=false
 fi
 
+# Allow to setup some values from the gadget snap
+ssid=$(awk -F': ' '/^    default\.wifi\.ssid: /{print$2}' /snap/pc/current/meta/gadget.yaml)
+security=$(awk -F': ' '/^    default\.wifi\.security: /{print$2}' /snap/pc/current/meta/gadget.yaml)
+passphrase=$(awk -F': ' '/^    default\.wifi\.security-passphrase: /{print$2}' /snap/pc/current/meta/gadget.yaml)
+
+/snap/bin/wifi-ap.config set wifi.ssid="$ssid" wifi.security="$security"
+if [ "$security" = wpa2 ]; then
+	/snap/bin/wifi-ap.config set wifi.security-passphrase="$passphrase"
+fi
+
 # If we haven't marked ourself as setup yet after the snap was installed
 # we do this now so that the already started management service can
 # continue doing its job.
