@@ -34,7 +34,12 @@ $ snap connect wifi-ap-example-consumer:control wifi-ap:control
 ```
 The socket will be available as $SNAP_DATA/sockets/control within the wifi-ap-example-consumer snap.
 
-If you need a simple client to talk with the service, you can use, for example, the unixhttpc tool to do raw HTTP queries.
+If you need a simple client to talk with the service, you can use, for example, the wifi-ap-client snap to do raw HTTP queries. You can install it with:
+
+```
+ $ snap install wifi-ap-client
+ $ snap connect ..
+```
 
 ## Responses
 

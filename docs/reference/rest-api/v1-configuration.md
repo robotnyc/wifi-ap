@@ -38,7 +38,7 @@ The following errors can occur:
 ### Example
 
 ```
-$ sudo unixhttpc /var/snap/wifi-ap/current/sockets/control /v1/configuration
+$ sudo wifi-ap-client /v1/configuration
 {
   “result”: {
 "disabled": true,
@@ -95,7 +95,7 @@ The following errors can occur:
 ### Example
 
 ```
-$ sudo unixhttpc -d '{“wifi.security”: “open”, “wifi.interface”: “wlan0”}' /v1/configuration
+$ sudo wifi-ap-client -d '{“wifi.security”: “open”, “wifi.interface”: “wlan0”}' /v1/configuration
 {
   “result”: { },
   “status”: “OK”,
