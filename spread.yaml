@@ -63,4 +63,14 @@ suites:
         prepare-each: |
             . $TESTSLIB/prepare-each.sh
         restore-each: |
+            . $TESTSLIB/restore-each.sh    
+    tests/regression/:
+        summary: Regression tests for the wifi-ap snap
+        systems:
+            - ubuntu-core-16
+        prepare: |
+            . $TESTSLIB/prepare.sh
+        prepare-each: |
+            . $TESTSLIB/prepare-each.sh
+        restore-each: |
             . $TESTSLIB/restore-each.sh
