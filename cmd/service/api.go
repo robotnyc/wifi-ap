@@ -16,11 +16,14 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
+
+	"github.com/snapcore/snapd/osutil"
 )
 
 var api = []*serviceCommand{
@@ -53,9 +56,9 @@ func getConfiguration(c *serviceCommand, writer http.ResponseWriter, request *ht
 }
 
 func postConfiguration(c *serviceCommand, writer http.ResponseWriter, request *http.Request) {
-	path := getConfigOnPath(os.Getenv("SNAP_DATA"))
+	configPath := getConfigOnPath(os.Getenv("SNAP_DATA"))
 	config := make(map[string]interface{})
-	if readConfiguration([]string{path}, config) != nil {
+	if readConfiguration([]string{configPath}, config) != nil {
 		resp := makeErrorResponse(http.StatusInternalServerError,
 			"Failed to read existing configuration file", "internal-error")
 		sendHTTPResponse(writer, resp)
@@ -68,13 +71,11 @@ func postConfiguration(c *serviceCommand, writer http.ResponseWriter, request *h
 		return
 	}
 
-	file, err := os.Create(path)
-	if err != nil {
-		resp := makeErrorResponse(http.StatusInternalServerError, "Can't write configuration file", "internal-error")
+	if request.Body == nil {
+		resp := makeErrorResponse(http.StatusInternalServerError, "Error reading the request body", "internal-error")
 		sendHTTPResponse(writer, resp)
 		return
 	}
-	defer file.Close()
 
 	body, err := ioutil.ReadAll(request.Body)
 	if err != nil {
@@ -84,7 +85,7 @@ func postConfiguration(c *serviceCommand, writer http.ResponseWriter, request *h
 	}
 
 	var items map[string]interface{}
-	if err = json.Unmarshal(body, &items); err != nil {
+	if err := json.Unmarshal(body, &items); err != nil {
 		resp := makeErrorResponse(http.StatusInternalServerError, "Malformed request", "internal-error")
 		sendHTTPResponse(writer, resp)
 		return
@@ -100,10 +101,19 @@ func postConfiguration(c *serviceCommand, writer http.ResponseWriter, request *h
 		config[key] = value
 	}
 
+	var b bytes.Buffer
 	for key, value := range config {
 		key = convertKeyToStorageFormat(key)
 		value = escapeTextForShell(value)
-		file.WriteString(fmt.Sprintf("%s=%s\n", key, value))
+		b.Write([]byte(fmt.Sprintf("%s=%s\n", key, value)))
+	}
+
+	// Always use an atomic write for the configuration file to ensure
+	// it's state is always persistent and kept in error cases.
+	if err := osutil.AtomicWriteFile(configPath, b.Bytes(), 0644, osutil.AtomicWriteFlags(0)); err != nil {
+		resp := makeErrorResponse(http.StatusInternalServerError, "Can't write configuration file", "internal-error")
+		sendHTTPResponse(writer, resp)
+		return
 	}
 
 	if err := restartAccessPoint(c); err != nil {

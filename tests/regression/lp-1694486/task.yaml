@@ -1,0 +1,19 @@
+summary: Verify AP configuration is written atomically
+
+details: |
+    Previous versions of the wifi-ap snap didn't write out the state
+    of the AP configuration file atomically so that we ended in a
+    state without any of the previously set configuration items when
+    an error occured.
+
+    See https://bugs.launchpad.net/snappy-hwe-snaps/+bug/1694486 for
+    more details.
+
+execute: |
+    wifi-ap.config set wifi.ssid=Foo
+    test "$(wifi-ap.config get wifi.ssid)" = Foo
+    ! wifi-ap.config set ssid=Bar
+    # Before LP #1694486 got fixed the value for the wifi.ssid item has
+    # been reset to the default value now, which is 'Ubuntu', because
+    # we supplied an invalid configuration key 'ssid' above.
+    test "$(wifi-ap.config get wifi.ssid)" = Foo
