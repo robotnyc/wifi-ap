@@ -147,7 +147,7 @@ Example:
 $ wifi-ap.config set wifi.security=wpa2
 ```
 
-## wifi.secrutiy-passphrase
+## wifi.security-passphrase
 
 WiFi security passphrase.
 
