@@ -151,7 +151,7 @@ $ wifi-ap.config set wifi.security=wpa2
 
 WiFi security passphrase.
 
-Default value: *Ubuntu*
+Default value: auto-generated secure password
 
 Example:
 
