@@ -30,8 +30,6 @@ execute: |
       # Below snap ID matches the one assigned for wifi-ap in the Ubuntu Store
       2rGgvyaY0CCzlWuKAPwFtCWrgwkM8lqS:
         default.wifi.ssid: GadgetSnap
-        default.wifi.security: wpa2
-        default.wifi.security-passphrase: GadgetGadgetGadgetGadgetMushroomMushroom
     EOF
     /snap/bin/se-test-tools.mksquashfs gadget $gadget_name.snap -comp xz -no-xattrs
     snap install --dangerous $gadget_name.snap
@@ -47,20 +45,13 @@ execute: |
     # the install hook which gets called will be the old one without
     # gadget snap support at time of writing
     ssid=$(awk -F': ' '/^    default\.wifi\.ssid: /{print$2}' /snap/pc/current/meta/gadget.yaml)
-    security=$(awk -F': ' '/^    default\.wifi\.security: /{print$2}' /snap/pc/current/meta/gadget.yaml)
-    passphrase=$(awk -F': ' '/^    default\.wifi\.security-passphrase: /{print$2}' /snap/pc/current/meta/gadget.yaml)
 
-    /snap/bin/wifi-ap.config set wifi.ssid="$ssid" wifi.security="$security"
-    if [ "$security" = wpa2 ]; then
-      /snap/bin/wifi-ap.config set wifi.security-passphrase="$passphrase"
-    fi
+    /snap/bin/wifi-ap.config set wifi.ssid="$ssid"
 
     # Wait until we can talk to the service
     while ! /snap/bin/wifi-ap.status; do sleep .1 ; done
 
     test "$(/snap/bin/wifi-ap.config get wifi.ssid)" = GadgetSnap
-    test "$(/snap/bin/wifi-ap.config get wifi.security)" = wpa2
-    test "$(/snap/bin/wifi-ap.config get wifi.security-passphrase)" = GadgetGadgetGadgetGadgetMushroomMushroom
 
     /snap/bin/wifi-ap.status | grep "ap.active: true"
     ! pgrep dnsmasq
