@@ -21,14 +21,14 @@ set -x
 # being installed. As the configure hook will be called before the
 # services are being started we can easily create an empty
 # configuration to fall back to the default one for everything.
-value=`snapctl get automatic-setup.disable`
+value=$(snapctl get automatic-setup.disable)
 if [ -n "$value" ]; then
     case "$value" in
         true)
-            touch $SNAP_COMMON/.block_auto_wizard
+            touch "$SNAP_COMMON"/.block_auto_wizard
             ;;
         false)
-            rm $SNAP_COMMON/.block_auto_wizard || true
+            rm -f "$SNAP_COMMON"/.block_auto_wizard
             ;;
         *)
             echo "ERROR: invalid value '$value' provided for automatic-setup.disable"
@@ -39,14 +39,26 @@ else
     snapctl set automatic-setup.disable=false
 fi
 
-# Allow to setup ssid from the gadget snap
-ssid=$(awk -F': ' '/^    default\.wifi\.ssid: /{print$2}' /snap/pc/current/meta/gadget.yaml)
+# Get default SSID only in first installation
+if [ -e "$SNAP_COMMON"/.setup_done ]; then
+    exit 0
+fi
 
-/snap/bin/wifi-ap.config set wifi.ssid="$ssid"
+# Allow to setup ssid from the gadget snap
+config_file="$SNAP_DATA"/config
+if ssid=$(snapctl get default.wifi.ssid) && [ -n "$ssid" ]; then
+    echo "Configure ssid to $ssid"
+
+    if grep -q "WIFI_SSID=" "$config_file"; then
+        sed -i "s/WIFI_SSID=.*/WIFI_SSID=$ssid/" "$config_file"
+    else
+        echo "WIFI_SSID=$ssid" >> "$config_file"
+    fi
+fi
 
 # If we haven't marked ourself as setup yet after the snap was installed
 # we do this now so that the already started management service can
 # continue doing its job.
-if [ ! -e $SNAP_COMMON/.setup_done ]; then
-    touch $SNAP_COMMON/.setup_done
+if [ ! -e "$SNAP_COMMON"/.setup_done ]; then
+    touch "$SNAP_COMMON"/.setup_done
 fi
