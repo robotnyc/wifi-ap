@@ -1,4 +1,10 @@
-summary: Verify that the configuration can be read from a gadget snap
+summary: Verify that the default SSID can be read from a gadget snap
+description: |
+    We check that we get the SSID name from the defaults in the gadget
+    snap. To do this, we re-package the gadget snap in the store after
+    changing gadget.yaml, and then we re-install it. A reboot is needed
+    after this. After it, we install the wifi-ap snap and check that the
+    SSID name is as expected.
 
 prepare: |
     . $TESTSLIB/snap-names.sh
@@ -20,7 +26,8 @@ execute: |
     . $TESTSLIB/snap-names.sh
     . $TESTSLIB/utilities.sh
 
-    if [ $SPREAD_REBOOT -eq 0 ]; then
+    case "$SPREAD_REBOOT" in
+    0)
         snap remove wifi-ap
         snap install --edge --devmode se-test-tools
 
@@ -39,23 +46,28 @@ execute: |
         snap install --dangerous $gadget_name.snap
 
         REBOOT
-    fi
+        ;;
+    1)
+        # Applying default configuration from a gadget snap only works when the snap
+        # comes from the store. It is not possible for an unasserted snap to be
+        # configured with defaults from the gadget. As a workaround, we install from
+        # edge and then sideload the snap we are testing.
+        snap install --edge wifi-ap
 
-    # Applying default configuration from a gadget snap only works when the snap
-    # comes from the store. It is not possible for an unasserted snap to be
-    # configured with defaults from the gadget. As a workaround, we install from
-    # edge and then sideload the snap we are testing.
-    snap install --edge wifi-ap
+        # So we run the configure hook
+        rm /var/snap/wifi-ap/common/.setup_done
 
-    # So we run the configure hook
-    rm /var/snap/wifi-ap/common/.setup_done
+        # Install prebuilt wifi-ap snap
+        snap install --dangerous /home/wifi-ap/wifi-ap_*.snap
 
-    # Install prebuilt wifi-ap snap
-    snap install --dangerous /home/wifi-ap/wifi-ap_*.snap
+        test "$(snap get wifi-ap default.wifi.ssid)" = "GadgetSnap"
 
-    test "$(snap get wifi-ap default.wifi.ssid)" = "GadgetSnap"
+        # Wait until we can talk to the service
+        while ! /snap/bin/wifi-ap.status; do sleep .1 ; done
 
-    # Wait until we can talk to the service
-    while ! /snap/bin/wifi-ap.status; do sleep .1 ; done
-
-    test "$(/snap/bin/wifi-ap.config get wifi.ssid)" = "GadgetSnap"
+        test "$(/snap/bin/wifi-ap.config get wifi.ssid)" = "GadgetSnap"
+        ;;
+    *)
+        echo "Test failed, too many reboots"
+        exit 1
+    esac

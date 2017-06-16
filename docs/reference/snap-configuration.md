@@ -55,7 +55,8 @@ unless changed by the user.
 
 This option is used only on installation of the wifi-ap snap, and it is ignored
 on updates. Therefore, doing *snap set* on it produces no effect.  It must be
-set by setting it as a default in the gadget snap, for instance:
+set by setting it as a default in the [gadget
+snap](https://docs.ubuntu.com/core/en/reference/gadget), for instance:
 
 ```
 defaults:

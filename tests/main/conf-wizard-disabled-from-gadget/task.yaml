@@ -14,12 +14,14 @@ restore: |
     if [ "$current_revision" != "$original_revision" ]; then
         snap revert --revision=$original_revision $gadget_name
     fi
+    rm $HOME/gadget_version
 
 execute: |
     . $TESTSLIB/snap-names.sh
     . $TESTSLIB/utilities.sh
 
-    if [ $SPREAD_REBOOT -eq 0 ]; then
+    case "$SPREAD_REBOOT" in
+    0)
         snap remove wifi-ap
         snap install --edge --devmode se-test-tools
 
@@ -38,21 +40,26 @@ execute: |
         snap install --dangerous $gadget_name.snap
 
         REBOOT
-    fi
+        ;;
+    1)
+        # Applying default configuration from a gadget snap only works when the snap
+        # comes from the store. It is not possible for an unasserted snap to be
+        # configured with defaults from the gadget. As a workaround, we install from
+        # edge and then sideload the snap we are testing.
+        snap install --edge wifi-ap
+        snap install --dangerous /home/wifi-ap/wifi-ap_*.snap
 
-    # Applying default configuration from a gadget snap only works when the snap
-    # comes from the store. It is not possible for an unasserted snap to be
-    # configured with defaults from the gadget. As a workaround, we install from
-    # edge and then sideload the snap we are testing.
-    snap install --edge wifi-ap
-    snap install --dangerous /home/wifi-ap/wifi-ap_*.snap
+        test "$(snap get wifi-ap automatic-setup.disable)" = true
 
-    test "$(snap get wifi-ap automatic-setup.disable)" = true
+        # Wait until we can talk to the service
+        while ! /snap/bin/wifi-ap.status; do sleep .1 ; done
 
-    # Wait until we can talk to the service
-    while ! /snap/bin/wifi-ap.status; do sleep .1 ; done
-
-    test "$(/snap/bin/wifi-ap.config get disabled)" = true
-    /snap/bin/wifi-ap.status | grep "ap.active: false"
-    ! pgrep dnsmasq
-    ! pgrep hostapd
+        test "$(/snap/bin/wifi-ap.config get disabled)" = true
+        /snap/bin/wifi-ap.status | grep "ap.active: false"
+        ! pgrep dnsmasq
+        ! pgrep hostapd
+        ;;
+    *)
+        echo "Test failed, too many reboots"
+        exit 1
+    esac

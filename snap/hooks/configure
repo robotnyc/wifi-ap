@@ -39,26 +39,21 @@ else
     snapctl set automatic-setup.disable=false
 fi
 
-# Get default SSID only in first installation
-if [ -e "$SNAP_COMMON"/.setup_done ]; then
-    exit 0
-fi
-
-# Allow to setup ssid from the gadget snap
-config_file="$SNAP_DATA"/config
-if ssid=$(snapctl get default.wifi.ssid) && [ -n "$ssid" ]; then
-    echo "Configure ssid to $ssid"
-
-    if grep -q "WIFI_SSID=" "$config_file"; then
-        sed -i "s/WIFI_SSID=.*/WIFI_SSID=$ssid/" "$config_file"
-    else
-        echo "WIFI_SSID=$ssid" >> "$config_file"
-    fi
-fi
-
-# If we haven't marked ourself as setup yet after the snap was installed
-# we do this now so that the already started management service can
-# continue doing its job.
 if [ ! -e "$SNAP_COMMON"/.setup_done ]; then
+    # Get default SSID from gadget only in first installation
+    config_file="$SNAP_DATA"/config
+    if ssid=$(snapctl get default.wifi.ssid) && [ -n "$ssid" ]; then
+        echo "Configure ssid to $ssid"
+
+        if grep -q "WIFI_SSID=" "$config_file"; then
+            sed -i "s/WIFI_SSID=.*/WIFI_SSID=$ssid/" "$config_file"
+        else
+            echo "WIFI_SSID=$ssid" >> "$config_file"
+        fi
+    fi
+
+    # If we haven't marked ourself as setup yet after the snap was installed
+    # we do this now so that the already started management service can
+    # continue doing its job.
     touch "$SNAP_COMMON"/.setup_done
 fi
