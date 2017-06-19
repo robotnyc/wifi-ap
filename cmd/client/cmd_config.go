@@ -23,6 +23,34 @@ import (
 	"strings"
 )
 
+type configCommand struct{}
+
+func (cmd *configCommand) Execute(args []string) error {
+	return nil
+}
+
+type getCommand struct{}
+
+func (cmd *getCommand) Execute(args []string) error {
+	response, err := sendHTTPRequest(getServiceConfigurationURI(), "GET", nil)
+	if err != nil {
+		return err
+	}
+
+	if len(args) == 1 {
+		wantedKey := args[0]
+		if val, ok := response.Result[wantedKey]; ok {
+			fmt.Fprintf(os.Stdout, "%v\n", val)
+		} else {
+			return fmt.Errorf("Config item '%s' does not exist", wantedKey)
+		}
+	} else {
+		printMapSorted(response.Result)
+	}
+
+	return nil
+}
+
 type setCommand struct{}
 
 func (cmd *setCommand) Execute(args []string) error {
@@ -49,36 +77,8 @@ func (cmd *setCommand) Execute(args []string) error {
 	return nil
 }
 
-type getCommand struct{}
-
-func (cmd *getCommand) Execute(args []string) error {
-	response, err := sendHTTPRequest(getServiceConfigurationURI(), "GET", nil)
-	if err != nil {
-		return err
-	}
-
-	if len(args) == 1 {
-		wantedKey := args[0]
-		if val, ok := response.Result[wantedKey]; ok {
-			fmt.Fprintf(os.Stdout, "%v\n", val)
-		} else {
-			return fmt.Errorf("Config item '%s' does not exist", wantedKey)
-		}
-	} else {
-		printMapSorted(response.Result)
-	}
-
-	return nil
-}
-
-type configCommand struct{}
-
-func (cmd *configCommand) Execute(args []string) error {
-	return nil
-}
-
 func init() {
 	cmd, _ := addCommand("config", "Adjust the service configuration", "", &configCommand{})
-	cmd.AddCommand("set", "", "", &setCommand{})
 	cmd.AddCommand("get", "", "", &getCommand{})
+	cmd.AddCommand("set", "", "", &setCommand{})
 }
