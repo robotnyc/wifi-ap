@@ -27,9 +27,13 @@ share.disabled: false
 share.network-interface: wlan0
 wifi.address: 10.0.60.1
 wifi.channel: 6
+wifi.country-code: ES
 wifi.hostapd-driver: nl80211
+wifi.ieee80211d: 1
+wifi.ieee80211h: 1
 wifi.interface: wlan0
 wifi.interface-mode: direct
+wifi.local-pwr-constraint: 3
 wifi.netmask: 255.255.255.0
 wifi.operation-mode: g
 wifi.security: open

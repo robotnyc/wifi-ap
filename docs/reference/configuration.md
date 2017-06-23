@@ -229,7 +229,6 @@ Example:
 $ wifi-ap.config set dhcp.range-start=192.168.7.10
 ```
 
-
 ## dhcp.range-stop
 
 End of the IP address range being used to assign IP addresses to DHCP clients
@@ -252,4 +251,73 @@ Example:
 
 ```
 $ wifi-ap.config set dhcp.lease-time=24h
+```
+
+## wifi.country-code
+
+Country code as specified by ISO/IEC 3166-1. Used to set regulatory domain. Set
+as needed to indicate country in which device is operating. This can limit
+available channels and transmit power.
+
+Possible values: see [this list](http://geotags.com/iso3166/countries.html).
+
+Default value: *XX*
+
+Example:
+
+```
+$ wifi-ap.config set wifi.country-code=US
+```
+
+## wifi.ieee80211d
+
+Enable IEEE 802.11d. This advertises the country code and the set of allowed
+channels and transmit power levels based on the regulatory limits.
+
+Possible values:
+
+ * *0*: Disabled
+ * *1*: Enabled
+
+Default value: *1*
+
+Example:
+
+```
+$ wifi-ap.config set wifi.ieee80211d=1
+```
+
+## wifi.ieee80211h
+
+Enable IEEE 802.11h. This enables radar detection and DFS support if
+available. DFS support is required on outdoor 5 GHz channels in most countries
+of the world. This can be used only with ieee80211d=1.
+
+Possible values:
+
+ * *0*: Disabled
+ * *1*: Enabled
+
+Default value: *1*
+
+Example:
+
+```
+$ wifi-ap.config set wifi.ieee80211h=1
+```
+
+## wifi.local-pwr-constraint
+
+Add Power Constraint element to Beacon and Probe Response frames This config
+option adds Power Constraint element when applicable and Country element is
+added. Power Constraint element is required by Transmit Power Control. This can
+be used only with ieee80211d=1. Valid values are 0..255 (dB below maximum
+allowed transmit power).
+
+Default value: *3*
+
+Example:
+
+```
+$ wifi-ap.config set wifi.local-pwr-constraint=3
 ```
