@@ -190,6 +190,13 @@ hw_mode=$WIFI_OPERATION_MODE
 dtim_period=3
 
 
+# Regulatory domain options
+country_code=$WIFI_COUNTRY_CODE
+ieee80211d=$WIFI_IEEE80211D
+ieee80211h=$WIFI_IEEE80211H
+local_pwr_constraint=$WIFI_LOCAL_PWR_CONSTRAINT
+
+
 # The wmm_* options are needed to enable AMPDU
 # and get decent 802.11n throughput
 # UAPSD is for stations powersave
