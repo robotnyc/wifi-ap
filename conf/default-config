@@ -12,9 +12,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# WARNING This file is sourced as shell script by the ap.sh script
-# it's also read by the configuration service as whitelist of valid tokens.
-# Tokens NOT present in this default file won't accepted by the service
+# WARNING This file is sourced as a shell script by the ap.sh script.
+# It is also read by the configuration service as a whitelist of valid tokens.
+# Tokens NOT present in this default file won't accepted by the service.
 
 DISABLED="true"
 

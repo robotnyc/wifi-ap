@@ -255,7 +255,7 @@ $ wifi-ap.config set dhcp.lease-time=24h
 
 ## wifi.country-code
 
-Country code as specified by ISO/IEC 3166-1. Used to set regulatory domain. Set
+Country code as specified by ISO/IEC 3166-1, used to set regulatory domain. Set
 as needed to indicate country in which device is operating. This can limit
 available channels and transmit power.
 
@@ -308,11 +308,10 @@ $ wifi-ap.config set wifi.ieee80211h=1
 
 ## wifi.local-pwr-constraint
 
-Add Power Constraint element to Beacon and Probe Response frames This config
-option adds Power Constraint element when applicable and Country element is
-added. Power Constraint element is required by Transmit Power Control. This can
-be used only with ieee80211d=1. Valid values are 0..255 (dB below maximum
-allowed transmit power).
+Add Power Constraint element to Beacon and Probe Response frames, when
+applicable. The Country element must be set for this to happen. Power Constraint
+element is required by Transmit Power Control. This can be used only with
+ieee80211d=1. Valid values are 0..255 (dB below maximum allowed transmit power).
 
 Default value: *3*
 
