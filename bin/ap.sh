@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2015, 2016 Canonical Ltd
+# Copyright (C) 2015-2017 Canonical Ltd
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 3 as
@@ -189,14 +189,6 @@ hw_mode=$WIFI_OPERATION_MODE
 # DTIM 3 is a good tradeoff between powersave and latency
 dtim_period=3
 
-
-# Regulatory domain options
-country_code=$WIFI_COUNTRY_CODE
-ieee80211d=$WIFI_IEEE80211D
-ieee80211h=$WIFI_IEEE80211H
-local_pwr_constraint=$WIFI_LOCAL_PWR_CONSTRAINT
-
-
 # The wmm_* options are needed to enable AMPDU
 # and get decent 802.11n throughput
 # UAPSD is for stations powersave
@@ -223,6 +215,27 @@ wmm_ac_vo_cwmax=3
 wmm_ac_vo_txop_limit=47
 wmm_ac_vo_acm=0
 EOF
+
+if [ -n "$WIFI_COUNTRY_CODE" ] ; then
+	cat <<-EOF >> $SNAP_DATA/hostapd.conf
+	# Regulatory domain options
+	country_code=$WIFI_COUNTRY_CODE
+	# Send country code in beacon frames
+	ieee80211d=1
+	# Enable radar detection
+	ieee80211h=1
+	# Send power constraint IE, 3dB below maximum allowed transmit power
+	local_pwr_constraint=3
+	# End reg domain options
+	EOF
+else
+	cat <<-EOF >> $SNAP_DATA/hostapd.conf
+	# Regulatory domain options
+	# Country code set to global
+	country_code=XX
+	# End reg domain options
+	EOF
+fi
 
 case "$WIFI_SECURITY" in
 	open)
