@@ -17,7 +17,7 @@ execute: |
     test "`/snap/bin/wifi-ap.config get wifi.operation-mode`" = "g"
     test "`/snap/bin/wifi-ap.config get wifi.security`" = "open"
     test "`/snap/bin/wifi-ap.config get wifi.ssid`" = "Ubuntu"
-    test "`/snap/bin/wifi-ap.config get wifi.country-code`" = "XX"
+    test -z "`/snap/bin/wifi-ap.config get wifi.country-code`"
     test "`/snap/bin/wifi-ap.config get wifi.ieee80211d`" = "1"
     test "`/snap/bin/wifi-ap.config get wifi.ieee80211h`" = "1"
     test "`/snap/bin/wifi-ap.config get wifi.local-pwr-constraint`" = "3"
