@@ -1,0 +1,19 @@
+summary: Test that country code is changed as expected
+
+execute: |
+    # Verify first the management service is up and running
+    /snap/bin/wifi-ap.config get
+    test "$(/snap/bin/wifi-ap.config get disabled)" = false
+
+    # AP should be active at this time
+    /snap/bin/wifi-ap.status | grep "ap.active: true"
+
+    /snap/bin/wifi-ap.config set wifi.country-code=US
+    test "$(/snap/bin/wifi-ap.config get wifi.country-code)" = "US"
+    sleep 10
+    iw reg get | grep "country US:"
+
+    /snap/bin/wifi-ap.config set wifi.country-code=
+    test -z "$(/snap/bin/wifi-ap.config get wifi.country-code)"
+    sleep 10
+    iw reg get | grep "country 00:"
