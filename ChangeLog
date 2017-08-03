@@ -1,0 +1,27 @@
+2017-08-03 wifi-ap 16
+
+  [ Alfonso Sanchez-Beato <alfonso.sanchez-beato@canonical.com> ]
+  * Add country code configuration options so the beacon frames
+    contain that IE.
+    Merge-Proposal: https://code.launchpad.net/~alfonsosanchezbeato/snappy-hwe-snaps/+git/wifi-ap/+merge/326219
+  * Refactor handling of country code, so now the only option
+    exposed in the configure hook is wifi.country_code. Added
+    also a new spread test.
+    Merge-Proposal: https://code.launchpad.net/~alfonsosanchezbeato/snappy-hwe-snaps/+git/wifi-ap/+merge/326672
+
+  [ morphis ]
+  * See more information in merge proposal
+    Merge-Proposal: https://code.launchpad.net/~morphis/snappy-hwe-snaps/+git/wifi-ap/+merge/324997
+
+  [ alfonsosanchezbeato ]
+  * See more information in merge proposal
+    Merge-Proposal: https://code.launchpad.net/~alfonsosanchezbeato/snappy-hwe-snaps/+git/wifi-ap/+merge/325800
+
+  [ kzapalowicz ]
+  * See more information in merge proposal
+    Merge-Proposal: https://code.launchpad.net/~kzapalowicz/snappy-hwe-snaps/+git/wifi-ap/+merge/325060
+  * See more information in merge proposal
+    Merge-Proposal: https://code.launchpad.net/~kzapalowicz/snappy-hwe-snaps/+git/wifi-ap/+merge/325480
+  * See more information in merge proposal
+    Merge-Proposal: https://code.launchpad.net/~kzapalowicz/snappy-hwe-snaps/+git/wifi-ap/+merge/325483
+
