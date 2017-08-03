@@ -27,6 +27,7 @@ share.disabled: false
 share.network-interface: wlan0
 wifi.address: 10.0.60.1
 wifi.channel: 6
+wifi.country-code: 
 wifi.hostapd-driver: nl80211
 wifi.interface: wlan0
 wifi.interface-mode: direct

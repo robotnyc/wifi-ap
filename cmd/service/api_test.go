@@ -126,7 +126,7 @@ func (s *S) TestNoDefaultConfiguration(c *check.C) {
 	os.Setenv("SNAP", oldsnap)
 }
 
-func (s *S) TestWriteError(c *check.C) {
+func (s *S) TestNoRequestBody(c *check.C) {
 	// Test a non writable path:
 	os.Setenv("SNAP_DATA", "/nodir")
 
@@ -157,7 +157,7 @@ func (s *S) TestWriteError(c *check.C) {
 	c.Assert(resp.StatusCode, check.Equals, http.StatusInternalServerError)
 	c.Assert(resp.Type, check.Equals, "error")
 	c.Assert(resp.Result["kind"], check.Equals, "internal-error")
-	c.Assert(resp.Result["message"], check.Equals, "Can't write configuration file")
+	c.Assert(resp.Result["message"], check.Equals, "Error reading the request body")
 }
 
 func (s *S) TestInvalidJSON(c *check.C) {

@@ -1,0 +1,7 @@
+/parts/
+/stage/
+/prime/
+/snap/
+wifi-ap_*.snap
+.tests-extras
+.spread-reuse.yaml

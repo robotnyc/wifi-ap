@@ -147,11 +147,11 @@ Example:
 $ wifi-ap.config set wifi.security=wpa2
 ```
 
-## wifi.secrutiy-passphrase
+## wifi.security-passphrase
 
 WiFi security passphrase.
 
-Default value: *Ubuntu*
+Default value: auto-generated secure password
 
 Example:
 
@@ -229,7 +229,6 @@ Example:
 $ wifi-ap.config set dhcp.range-start=192.168.7.10
 ```
 
-
 ## dhcp.range-stop
 
 End of the IP address range being used to assign IP addresses to DHCP clients
@@ -252,4 +251,20 @@ Example:
 
 ```
 $ wifi-ap.config set dhcp.lease-time=24h
+```
+
+## wifi.country-code
+
+Country code as specified by ISO/IEC 3166-1, used to set regulatory domain. Set
+as needed to indicate country in which device is operating. This can limit
+available channels and transmit power.
+
+Possible values: see [this list](http://geotags.com/iso3166/countries.html).
+
+Default value: empty
+
+Example:
+
+```
+$ wifi-ap.config set wifi.country-code=US
 ```

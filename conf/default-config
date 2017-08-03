@@ -12,9 +12,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# WARNING This file is sourced as shell script by the ap.sh script
-# it's also readed by the configuration service as whitelist of valid tokens.
-# Tokens NOT present in this default file won't accepted by the service
+# WARNING This file is sourced as a shell script by the ap.sh script.
+# It is also read by the configuration service as a whitelist of valid tokens.
+# Tokens NOT present in this default file won't accepted by the service.
 
 DISABLED="true"
 
@@ -49,6 +49,8 @@ WIFI_CHANNEL=6
 # Operation mode (a = IEEE 802.11a (5 GHz), b = IEEE 802.11b (2.4 GHz),
 # g = IEEE 802.11g (2.4 GHz), ad = IEEE 802.11ad (60 GHz);
 WIFI_OPERATION_MODE="g"
+
+WIFI_COUNTRY_CODE=""
 
 # Wether connection sharing is disabled or not
 SHARE_DISABLED="false"

@@ -17,6 +17,7 @@ execute: |
     test "`/snap/bin/wifi-ap.config get wifi.operation-mode`" = "g"
     test "`/snap/bin/wifi-ap.config get wifi.security`" = "open"
     test "`/snap/bin/wifi-ap.config get wifi.ssid`" = "Ubuntu"
+    test -z "`/snap/bin/wifi-ap.config get wifi.country-code`"
     # FIXME: Once wifi-ap.config get returns correct error codes when an
     # item does not exist we can drop the grep check here.
     /snap/bin/wifi-ap.config get wifi.security-passphrase | grep 'does not exist'

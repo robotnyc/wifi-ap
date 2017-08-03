@@ -46,3 +46,25 @@ defaults:
 After this snippet is added to the gadget.yaml and an updated version of the
 gadget snap is deployed onto the device the automatic setup, of the AP is disabled
 once the wifi-ap is installed from the Ubuntu Store.
+
+## default.wifi.ssid
+
+The *default.wifi.ssid* option allows a device to specify the default name of
+the wireless network (SSID). This name will be used when creating a network
+unless changed by the user.
+
+This option is used only on installation of the wifi-ap snap, and it is ignored
+on updates. Therefore, doing *snap set* on it produces no effect.  It must be
+set by setting it as a default in the [gadget
+snap](https://docs.ubuntu.com/core/en/reference/gadget), for instance:
+
+```
+defaults:
+  # The alpha numeric key below is the id of the wifi-ap snap assigned in the
+  # Ubuntu Store. Specifying the snap name instead is not possible.
+  2rGgvyaY0CCzlWuKAPwFtCWrgwkM8lqS:
+    default.wifi.ssid: MyDeviceSSID
+```
+
+A gadget snap with this option must be installed before installing wifi-ap for
+it to have effect.

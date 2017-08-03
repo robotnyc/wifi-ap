@@ -52,6 +52,7 @@ $ sudo wifi-ap-client /v1/configuration
 "wifi.security": "wpa2",
 "wifi.security-passphrase": "12345678",
 "wifi.channel": 6,
+"wifi.country-code": "",
 "wifi.operation-mode": "virtual",
 "share.disabled": false,
 "share.network-interface": "eth0",

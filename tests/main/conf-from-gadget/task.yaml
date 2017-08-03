@@ -1,4 +1,10 @@
-summary: Verify the wizard can be disabled by default from a gadget snap
+summary: Verify that the default SSID can be read from a gadget snap
+description: |
+    We check that we get the SSID name from the defaults in the gadget
+    snap. To do this, we re-package the gadget snap in the store after
+    changing gadget.yaml, and then we re-install it. A reboot is needed
+    after this. After it, we install the wifi-ap snap and check that the
+    SSID name is as expected.
 
 prepare: |
     . $TESTSLIB/snap-names.sh
@@ -33,7 +39,7 @@ execute: |
             "defaults:" \
             "  # Below snap ID matches the one assigned for wifi-ap in the Ubuntu Store" \
             "  2rGgvyaY0CCzlWuKAPwFtCWrgwkM8lqS:" \
-            "    automatic-setup.disable: true" \
+            "    default.wifi.ssid: GadgetSnap" \
         >>  gadget/meta/gadget.yaml
 
         /snap/bin/se-test-tools.mksquashfs gadget $gadget_name.snap -comp xz -no-xattrs
@@ -47,17 +53,19 @@ execute: |
         # configured with defaults from the gadget. As a workaround, we install from
         # edge and then sideload the snap we are testing.
         snap install --edge wifi-ap
+
+        # So we run the configure hook
+        rm /var/snap/wifi-ap/common/.setup_done
+
+        # Install prebuilt wifi-ap snap
         snap install --dangerous /home/wifi-ap/wifi-ap_*.snap
 
-        test "$(snap get wifi-ap automatic-setup.disable)" = true
+        test "$(snap get wifi-ap default.wifi.ssid)" = "GadgetSnap"
 
         # Wait until we can talk to the service
         while ! /snap/bin/wifi-ap.status; do sleep .1 ; done
 
-        test "$(/snap/bin/wifi-ap.config get disabled)" = true
-        /snap/bin/wifi-ap.status | grep "ap.active: false"
-        ! pgrep dnsmasq
-        ! pgrep hostapd
+        test "$(/snap/bin/wifi-ap.config get wifi.ssid)" = "GadgetSnap"
         ;;
     *)
         echo "Test failed, too many reboots"
