@@ -121,26 +121,6 @@ parts:
     prime:
       - $binaries
 
-  hostapd-rtl8188:
-    plugin: make
-    source: https://git.launchpad.net/~snappy-hwe-team/snappy-hwe-snaps/+git/wifi-ap
-    source-type: git
-    source-branch: hostapd/2.5-rtl8188
-    build-packages:
-      - build-essential
-      - pkg-config
-      - libnl-3-dev
-      - libnl-genl-3-dev
-      - libnl-route-3-dev
-      - libssl-dev
-    make-parameters:
-      - BINDIR=/rtl8188
-    filesets:
-      binaries:
-        - rtl8188/hostapd
-    prime:
-      - $binaries
-
   nmcli:
     plugin: nil
     stage-packages:
