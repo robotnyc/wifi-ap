@@ -104,7 +104,7 @@ parts:
     plugin: make
     source: https://git.launchpad.net/~snappy-hwe-team/snappy-hwe-snaps/+git/wifi-ap
     source-type: git
-    source-branch: hostapd/2.5
+    source-branch: hostapd/2.6
     build-packages:
       - build-essential
       - pkg-config
