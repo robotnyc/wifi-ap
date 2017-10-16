@@ -170,9 +170,6 @@ $SNAP/bin/dnsmasq \
 	&
 
 driver=$WIFI_HOSTAPD_DRIVER
-if [ "$driver" = "rtl8188" ] ; then
-	driver=rtl871xdrv
-fi
 
 # Generate our hostapd configuration file
 cat <<EOF > $SNAP_DATA/hostapd.conf
@@ -262,14 +259,6 @@ if [ "$DEBUG" = "true" ] ; then
 fi
 
 hostapd=$SNAP/bin/hostapd
-case "$WIFI_HOSTAPD_DRIVER" in
-	rtl8188)
-		hostapd=$SNAP/rtl8188/hostapd
-		;;
-	*)
-		# Fallthrough and use the default hostapd
-		;;
-esac
 
 # Startup hostapd with the configuration we've put in place
 $hostapd $EXTRA_ARGS $SNAP_DATA/hostapd.conf &

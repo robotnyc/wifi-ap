@@ -1,3 +1,13 @@
+2017-10-16 wifi-ap 17
+
+  [ Simon Fels <simon.busch@canonical.com> ]
+  * Update to hostapd 2.6 which has all CVE fixes for the krack attach applied
+    
+    See https://w1.fi/security/2017-1/ for details
+    
+    This also drops the rtl8188 custom implementation which never being used and not functional.
+    Merge-Proposal: https://code.launchpad.net/~morphis/snappy-hwe-snaps/+git/wifi-ap/+merge/332312
+
 2017-08-03 wifi-ap 16
 
   [ Alfonso Sanchez-Beato <alfonso.sanchez-beato@canonical.com> ]

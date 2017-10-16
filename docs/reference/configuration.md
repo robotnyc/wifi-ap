@@ -110,14 +110,13 @@ The hostapd driver being used.
 Possible values:
 
  * *nl80211*: Let hostapd talk through the nl80211 interface with the kernel WiFi drivers.
- * *rtl8188*: A special hostapd version will be used which is specific for WiFi chips from Realtek.
 
 Default value: *nl80211*
 
 Example:
 
 ```
-$ wifi-ap.config set wifi.hostapd-driver=rtl8188
+$ wifi-ap.config set wifi.hostapd-driver=nl80211
 ```
 
 ## wifi.ssid
