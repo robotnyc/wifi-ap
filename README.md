@@ -1,3 +1,7 @@
+This fork provides a captive portable functionality.
+
+[![Snap Status](https://build.snapcraft.io/badge/robotnyc/wifi-ap.svg)](https://build.snapcraft.io/user/robotnyc/wifi-ap)
+
 # wifi-ap
 
 This snap provided WiFi AP functionality out of the box.
