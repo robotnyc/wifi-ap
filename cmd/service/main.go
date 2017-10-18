@@ -22,8 +22,6 @@ import (
 	"time"
 )
 
-const snapSetupDoneFilePath = "/var/snap/wifi-ap/common/.setup_done"
-
 func main() {
 	s := &service{}
 
@@ -32,7 +30,7 @@ func main() {
 	// continue before that happen we will miss any initial
 	// configuration set via a gadget snap.
 	for {
-		_, err := os.Stat(snapSetupDoneFilePath)
+		_, err := os.Stat(os.Getenv("SNAP_COMMON") + "/.setup_done")
 		if err == nil {
 			break
 		}
