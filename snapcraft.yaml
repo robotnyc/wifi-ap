@@ -1,6 +1,6 @@
 name: wifi-ap-captive
 version: 18-dev-captive
-confinement: strict
+confinement: devmode 
 summary: WiFi Access Point based on hostapd with a captive portal
 description: |
   This snap is implementing a WiFi access point based on hostapd and allows
