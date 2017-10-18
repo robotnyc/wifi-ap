@@ -48,6 +48,7 @@ generate_dnsmasq_config() {
 	bind-interfaces
 	dhcp-range=$DHCP_RANGE_START,$DHCP_RANGE_STOP,$DHCP_LEASE_TIME
 	dhcp-option=6, $WIFI_ADDRESS
+	address=/#/$WIFI_ADDRESS
 	EOF
 	} > $1
 }
